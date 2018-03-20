@@ -56,12 +56,16 @@ def register():
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match.")
 
-        # insert new user into database
-        result = db.execute("INSERT INTO users (username, hash) \
-                             VALUES (:username, :hash)", \
-                             username=request.form.get("username"), \
-                             hash=generate_password_hash(request.form.get("password")))
+        elif not request.form.get("cell"):
+            return apology("Enter driver cell number")
+        
 
+        # insert new user into database
+        result = db.execute("INSERT INTO users (username, hash, cell) \
+                             VALUES (:username, :hash, :cell)", \
+                             username=request.form.get("username"), \
+                             hash=generate_password_hash(request.form.get("password")),
+                             cell=request.form.get("cell"))
         # if username exists
         if not result:
             return apology("Choose another username.")

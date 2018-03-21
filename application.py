@@ -62,8 +62,7 @@ def register():
         hash = generate_password_hash(request.form.get("password"))
         
         # insert new user into database
-        result = c.execute("""INSERT INTO users (username, hash) VALUES ("{username}", "{hash}");""".\
-                format(username=username, hash=hash))
+        result = c.execute("""INSERT INTO users (username, hash) VALUES (?,?);""", (username, hash))
 
         # if username exists
         if not result:

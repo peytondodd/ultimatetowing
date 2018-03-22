@@ -1,9 +1,10 @@
--------------------------------------
-===  Ultimate Towing Application  ===
--------------------------------------
-Tow truck company Name & No.   ______
-Tow bill invoice No. 	       ______
-Tow truck company No.	       ______
+--------------------------------------
+---- Ultimate Towing Application  ----
+--------------------------------------
+
+    Tow truck company Name & No.       ______
+    Tow bill invoice No. 	       ______
+    Tow truck company No.	       ______
 
     - Customer information:
 	1. Name
@@ -42,9 +43,9 @@ Tow truck company No.	       ______
 	7. Vehile Identification No.
 	8. Keys (Y/N)
 
------------------
-===  Billing  ===
------------------
+-------------------
+----  Billing  ----
+-------------------
 
 1. Police redirect (crc required):    $__.__
 2. Environmental cleanup:             $__.__

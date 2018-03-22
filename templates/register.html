@@ -5,17 +5,34 @@
 {% endblock %}
 
 {% block main %}
-    <form action="/register" method="post">
+    <form id="company_name_form" action="/getCompanyName" method="post">
 
-	<div id="company_code_wrapper">
-
-	    <div class="form-group">
-		<input autocomplete="off" autofocus class="form-control" id="company_code" name="company_code" placeholder="Company Code" type="text" pattern=".{5,5}" required/>
-	    </div>
-
+	<div class="form-group">
+	    <input autocomplete="off" autofocus class="form-control" id="company_code" name="companycode" placeholder="Company Code" type="text" pattern=".{5,5}" required/>
+	    <button class="btn btn-primary" type="submit" disabled>Check Company</button>
 	</div>
 
-	<div id="operator_info" class="hidden">
+
+
+    </form>
+
+    <div id="operatorInfoWrapper">
+
+	<div id="companyTitleWrapper" class="row">
+	    <div class="col-xs-12 col-sm-12 col-md-4"></div>
+	    <div class="col-xs-12 col-sm-12 col-md-4" id="companyNameTitle"></div>
+	    <div class="col-xs-12 col-sm-12 col-md-4">
+		<div style=" display: table; width:100%; height:100%;">
+		    <div style=" display: table-cell; vertical-align:middle;">
+			<div id="changeCompanyButton">Change Company</div>
+		    </div>
+		</div>
+	    </div>
+	</div>
+
+	<div class="h-divider"></div>
+
+	<form id="operator_info_form" action="/register" method="post">
 
 	    <div class="form-group">
 		<input autocomplete="off" autofocus class="form-control" name="first_name" placeholder="First Name" type="text"/>
@@ -39,6 +56,6 @@
 
 	    <button class="btn btn-primary" type="submit" disabled>Register</button>
 
-	</div>
-    </form>
+	</form>
+    </div>
 {% endblock %}

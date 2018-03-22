@@ -78,6 +78,31 @@ def register():
         return render_template("register.html")
 
 
+@app.route("/getCompanyName", methods=["GET","POST"])
+def getCompanyName():
+    """return company name from code"""
+
+    companyName = ""
+
+    if request.method == "POST":
+
+        print("CHECKING VARIABLE")
+        if not request.form.get("companycode"):
+            return apology("must provide company code", 403)
+
+        companycode = request.form.get("companycode") 
+        print("company code --------->")
+        print(companycode)
+
+        c.execute("""SELECT companyname FROM owners WHERE companycode = ?;""", (companycode,))
+        
+        rows = c.fetchall()
+        if len(rows) > 0:
+            companyName = rows[0]
+
+    return companyName
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

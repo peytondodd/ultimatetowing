@@ -39,7 +39,7 @@ $(function() {
 		cb_func(returnVal);
 	    },
 	    error: function(request,error) {
-		alert('CALLBACK ERROR NIGGA');
+		console.log('Callback error.');
 	    }
         });
         return false;

@@ -1,0 +1,44 @@
+CREATE TABLE operators (
+    operatorid integer primary key autoincrement not null,
+    firstname text not null,
+    lastname text not null,
+    email text not null unique,
+    hash text not null,
+    cell text,
+    companyid text not null,
+        FOREIGN KEY (companyid) REFERENCES companies(companyid)
+);
+
+CREATE TABLE owners (
+    ownerid integer primary key autoincrement not null,
+    firstname text not null,
+    lastname text not null,
+    email text not null unique,
+    hash text not null,
+    cell text
+);
+
+CREATE TABLE companies (
+    companyid text primary key not null,
+    companyname text not null,
+    phone text not null
+);
+
+CREATE TABLE trucks (
+    truckid text primary key not null,
+    make text not null,
+    model text not null,
+    licenseplate text not null,
+    companyid text not null,
+    operatorid integer not null,
+        FOREIGN KEY (companyid) REFERENCES companies(companyid),
+        FOREIGN KEY (operatorid) REFERENCES operators(operatorid)
+);
+
+CREATE TABLE owners_companies (
+    id integer primary key autoincrement not null,
+    ownerid integer not null,
+    companyid text not null,
+        FOREIGN KEY (ownerid) REFERENCES owners(ownerid),
+        FOREIGN KEY (companyid) REFERENCES companies(companyid)
+);

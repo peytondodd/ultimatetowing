@@ -31,7 +31,7 @@ Session(app)
 
 # Configure SQLite database
 conn = sqlite3.connect("towing.db", check_same_thread=False)
-c = conn.cursor()
+db = conn.cursor()
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -39,17 +39,24 @@ def register():
     """Register user"""
 
     if request.method == "POST":
-        # check for username
-        if not request.form.get("username"):
-            return apology("Please enter username.")
+        # check for name
+        if not request.form.get("firstname"):
+            return apology("Missing first name.")
+
+        if not request.form.get("lastname"):
+            return apology("Missing last name.")
+
+        # check for email
+        if not request.form.get("email"):
+            return apology("Missing email address.")
 
         # check for password
         elif not request.form.get("password"):
-            return apology("Please enter password.")
+            return apology("Enter a password.")
 
         # check for password confirmation
         elif not request.form.get("confirmation"):
-            return apology("Please confirm password.")
+            return apology("Confirm password.")
 
         # check for matching passwords
 #        elif not request.form.get("cell"):
@@ -58,15 +65,24 @@ def register():
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match.")
 
-        username = request.form.get("username")
+        firstname = request.form.get("firstname")
+        lastname = request.form.get("lastname")
+        email = request.form.get("email")
         hash = generate_password_hash(request.form.get("password"))
-        
-        # insert new user into database
-        result = c.execute("""INSERT INTO users (username, hash) VALUES (?,?);""", (username, hash))
+   
+# TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
 
-        # if username exists
+        # insert new user into database
+        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash) 
+                              VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
+
+# TODO: CONSIDER SELECTING FROM ANOTHER TABLE 'TRUCKS' WHERE EACH TRUCK
+# TODO: IS REGISTERED TO ITS OWNER AND COMPANY? ENSURE THE OWNER HAS A
+# TODO: TRUCK ASSIGNED TO THIS OPERATOR?
+
+        # user must provide unique email address 
         if not result:
-            return apology("Choose another username.")
+            return apology("Email address already in use.")
 
         conn.commit()
         # successful registration redirect
@@ -83,20 +99,19 @@ def getCompanyName():
     """return company name from code"""
 
     companyName = ""
-
     if request.method == "POST":
 
-        print("CHECKING VARIABLE")
+        # check for company code
         if not request.form.get("companycode"):
             return apology("must provide company code", 403)
 
         companycode = request.form.get("companycode") 
-        print("company code --------->")
-        print(companycode)
-
-        c.execute("""SELECT companyname FROM owners WHERE companycode = ?;""", (companycode,))
         
-        rows = c.fetchall()
+        # query database for company code
+        db.execute("""SELECT companyname FROM owners 
+                      WHERE companycode = ?;""", (companycode,))
+        
+        rows = db.fetchall()
         if len(rows) > 0:
             companyName = rows[0]
 
@@ -115,20 +130,26 @@ def login():
     if request.method == "POST":
 
         # Ensure username was submitted
-        if not request.form.get("username"):
-            return apology("must provide username", 403)
+        if not request.form.get("email"):
+            return apology("missing email address", 403)
 
         # Ensure password was submitted
         elif not request.form.get("password"):
-            return apology("must provide password", 403)
+            return apology("missing password", 403)
 
-        # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE username = :username",
-                          username=request.form.get("username"))
+        email = request.form.get("email")
 
+        # Query database for email address
+        db.execute("""SELECT * FROM operators 
+                      WHERE email = ?;""", (email,))
+
+        rows = db.fetchall()
+        print(rows)
+        print(rows[0])
+        
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid username and/or password", 403)
+            return apology("invalid email and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["id"]

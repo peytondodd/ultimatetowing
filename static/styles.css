@@ -22,6 +22,13 @@ nav .navbar-brand .green
     color: #2e944b;
 }
 
+.dropdown-menu {
+    margin-top: 0;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
 main .form-control
 {
     /* center form controls */

@@ -1,18 +1,18 @@
 // Towing Application
-companyCode = "";
+companyid = "";
 $(document).ready(function() {
 
-    $("#company_code").keypress(function() {
+    $("#companyid").keypress(function() {
 	setTimeout(function() {
 
-	    companyCode = $("#company_code").val();
+	    companyid = $("#companyid").val();
 
-	    if ($("#company_code").val().length>5){
-		companyCode = $("#company_code").val().slice(0,5);
-		$("#company_code").val(companyCode);
+	    if ($("#companyid").val().length>9){
+		companyid = $("#companyid").val().slice(0,9);
+		$("#companyid").val(companyid);
 	    }
 
-	    if ($("#company_code").val().length==5){
+	    if ($("#companyid").val().length==9){
 		$(':input[type="submit"]').prop('disabled', false);
 
 	    } else {
@@ -32,10 +32,9 @@ $(function() {
             type: 'POST',
             url: '/getCompanyName',
             data: { 
-		companycode: companyCode
+		companyid: companyid
 	    },
 	    success: function(returnVal) {
-		console.log("returned value: " + returnVal);
 		cb_func(returnVal);
 	    },
 	    error: function(request,error) {
@@ -75,7 +74,7 @@ function hideCompanySelector() {
 }
 
 function showCompanySelector() {
-    $("#company_code").val("");
+    $("#companyid").val("");
     $("#company_name_form").animate({
 	opacity: 1
     }, 300);

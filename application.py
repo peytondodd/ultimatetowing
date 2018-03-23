@@ -34,9 +34,9 @@ conn = sqlite3.connect("towing.db", check_same_thread=False)
 db = conn.cursor()
 
 
-@app.route("/register", methods=["GET", "POST"])
-def register():
-    """Register user"""
+@app.route("/registerCompany", methods=["GET", "POST"])
+def registerCompany():
+    """Register company"""
 
     if request.method == "POST":
         # check for name
@@ -91,7 +91,67 @@ def register():
 
     # registration redirect
     else:
-        return render_template("register.html")
+        return render_template("registercompany.html")
+
+
+@app.route("/registerOperator", methods=["GET", "POST"])
+def registerOperator():
+    """Register operator"""
+
+    if request.method == "POST":
+        # check for name
+        if not request.form.get("firstname"):
+            return apology("Missing first name.")
+
+        if not request.form.get("lastname"):
+            return apology("Missing last name.")
+
+        # check for email
+        if not request.form.get("email"):
+            return apology("Missing email address.")
+
+        # check for password
+        elif not request.form.get("password"):
+            return apology("Enter a password.")
+
+        # check for password confirmation
+        elif not request.form.get("confirmation"):
+            return apology("Confirm password.")
+
+        # check for matching passwords
+#        elif not request.form.get("cell"):
+#            return apology("Enter driver cell number")
+
+        elif request.form.get("password") != request.form.get("confirmation"):
+            return apology("Passwords do not match.")
+
+        firstname = request.form.get("firstname")
+        lastname = request.form.get("lastname")
+        email = request.form.get("email")
+        hash = generate_password_hash(request.form.get("password"))
+   
+# TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
+
+        # insert new user into database
+        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash) 
+                              VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
+
+# TODO: CONSIDER SELECTING FROM ANOTHER TABLE 'TRUCKS' WHERE EACH TRUCK
+# TODO: IS REGISTERED TO ITS OWNER AND COMPANY? ENSURE THE OWNER HAS A
+# TODO: TRUCK ASSIGNED TO THIS OPERATOR?
+
+        # user must provide unique email address 
+        if not result:
+            return apology("Email address already in use.")
+
+        conn.commit()
+        # successful registration redirect
+        return render_template("login.html")
+
+
+    # registration redirect
+    else:
+        return render_template("registeroperator.html")
 
 
 @app.route("/getCompanyName", methods=["GET","POST"])
@@ -102,14 +162,14 @@ def getCompanyName():
     if request.method == "POST":
 
         # check for company code
-        if not request.form.get("companycode"):
+        if not request.form.get("companyid"):
             return apology("must provide company code", 403)
 
-        companycode = request.form.get("companycode") 
+        companyid = request.form.get("companyid") 
         
         # query database for company code
-        db.execute("""SELECT companyname FROM owners 
-                      WHERE companycode = ?;""", (companycode,))
+        db.execute("""SELECT companyname FROM companies 
+                      WHERE companyid = ?;""", (companyid,))
         
         rows = db.fetchall()
         if len(rows) > 0:

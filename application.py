@@ -232,6 +232,22 @@ def login():
         return render_template("login.html")
 
 
+@app.route("/searchCompany")
+def searchCompany():
+    """Search for companies that match query"""
+
+    column = ""
+    if not request.form.get("q"):
+        raise RuntimeError("Search failed")
+
+    q = "%" + request.args.get("q") + "%"
+    db.execute("""SELECT * FROM companies WHERE companycode 
+                  LIKE ? OR companyname LIKE ? LIMIT 5;""", (q,))
+    
+    rows = db.fetchall()
+    
+    return jsonify(rows)
+
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
@@ -276,43 +292,7 @@ def settings():
 @login_required
 def index():
     """Logged in screen"""
-#
-#    # populate user portfolio
-#    wallet = db.execute("SELECT shares, symbol FROM portfolio \
-#                         WHERE id=:id", id=session["user_id"])
-#    balance = 0
-#
-#    # iterate through user-owned stocks
-#    for stock in wallet:
-#        symbol = stock["symbol"]
-#        shares = stock["shares"]
-#        stockinfo = lookup(symbol)
-#        total = int(shares) * float(stockinfo["price"])
-#
-#        balance += total
-#
-#        # update user portfolio
-#        db.execute("UPDATE portfolio SET price=:price, \
-#                    total=:total WHERE id=:user_id AND symbol=:symbol", \
-#                    price=usd(stockinfo["price"]), total=usd(total), \
-#                    user_id=session["user_id"], symbol=symbol)
-#
-#    # load user cash balance from users database
-#    cash = db.execute("SELECT cash FROM users WHERE id=:user_id", \
-#                        user_id=session["user_id"])
-#
-#    # update balance
-#    balance += cash[0]["cash"]
-#
-#    # query database for user portfolio
-#    portfolio = db.execute("SELECT * FROM portfolio WHERE id=:user_id", \
-#                            user_id=session["user_id"])
-#
-#    return render_template("index.html", portfolio=portfolio, \
-#                            cash=usd(cash[0]["cash"]), \
-#                            total=usd(balance))
-#
-#
+
     return render_template("index.html")
 
 

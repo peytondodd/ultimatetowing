@@ -10,8 +10,7 @@ from helpers import apology, login_required
 
 # Configure application
 app = Flask(__name__)
-
-
+companyid = "";
 # Ensure responses aren't cached
 @app.after_request
 def after_request(response):
@@ -19,9 +18,6 @@ def after_request(response):
     response.headers["Expires"] = 0
     response.headers["Pragma"] = "no-cache"
     return response
-
-# Custom filter
-#app.jinja_env.filters["usd"] = usd
 
 # Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_FILE_DIR"] = mkdtemp()
@@ -33,12 +29,13 @@ Session(app)
 conn = sqlite3.connect("towing.db", check_same_thread=False)
 db = conn.cursor()
 
-
 @app.route("/registerCompany", methods=["GET", "POST"])
 def registerCompany():
     """Register company"""
 
     if request.method == "POST":
+
+        print(companyid)
 
         # check/store company name
         if not request.form.get("companyname"):
@@ -172,6 +169,7 @@ def getCompanyName():
     """return company name from code"""
 
     companyname = ""
+    global companyid
     if request.method == "POST":
 
         # check for company code

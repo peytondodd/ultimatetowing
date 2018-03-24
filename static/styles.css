@@ -63,6 +63,15 @@ main img
     margin-left: 25px;
 }
 
+#companyNameWrapper {
+    margin-bottom: 20px;
+}
+
+#ownerInfoWrapper {
+    margin-top: 20px;
+    display: none;
+}
+
 .operatorInfoWrapper {
     margin-top: 20px;
 }

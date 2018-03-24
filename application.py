@@ -39,46 +39,58 @@ def registerCompany():
     """Register company"""
 
     if request.method == "POST":
-        # check for name
+
+        # check/store company name
+        if not request.form.get("companyname"):
+            return apology("Missing company name.")
+        companyname = request.form.get("companyname")
+        print(companyname)
+
+        # check/store company phone number
+        if not request.form.get("phone"):
+            return apology("Missing company phone number.")
+        phone = request.form.get("phone")
+
+        # check/store owner first name
         if not request.form.get("firstname"):
             return apology("Missing first name.")
+        firstname = request.form.get("firstname")
 
+        # check/store owner last name
         if not request.form.get("lastname"):
             return apology("Missing last name.")
+        lastname = request.form.get("lastname")
 
-        # check for email
+        # check/store owner email
         if not request.form.get("email"):
             return apology("Missing email address.")
+        email = request.form.get("email")
 
-        # check for password
-        elif not request.form.get("password"):
+        # check/store owner password
+        if not request.form.get("password"):
             return apology("Enter a password.")
-
-        # check for password confirmation
         elif not request.form.get("confirmation"):
             return apology("Confirm password.")
-
-        # check for matching passwords
-#        elif not request.form.get("cell"):
-#            return apology("Enter driver cell number")
-
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match.")
-
-        firstname = request.form.get("firstname")
-        lastname = request.form.get("lastname")
-        email = request.form.get("email")
         hash = generate_password_hash(request.form.get("password"))
-   
-# TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
+        
+        db.execute("""SELECT companyname FROM companies
+                      WHERE companyname = ?;""", (companyname,))
+        rows = db.fetchall()
+        if len(rows) > 0:
+            return apology("Company name exists. Re-enter correct incorporation number.")
 
-        # insert new user into database
-        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash) 
-                              VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
+        # insert new owner into database
+        result = db.execute("""INSERT INTO owners (firstname, lastname, email, hash) 
+                               VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
 
-# TODO: CONSIDER SELECTING FROM ANOTHER TABLE 'TRUCKS' WHERE EACH TRUCK
-# TODO: IS REGISTERED TO ITS OWNER AND COMPANY? ENSURE THE OWNER HAS A
-# TODO: TRUCK ASSIGNED TO THIS OPERATOR?
+
+# TODO: retrieve companyid on form submit from scripts.js
+
+        # insert new company into database
+        db.execute("""INSERT INTO companies (companyid, companyname, phone) 
+                      VALUES (?,?,?);""", (companyid, companyname, phone))
 
         # user must provide unique email address 
         if not result:
@@ -87,7 +99,6 @@ def registerCompany():
         conn.commit()
         # successful registration redirect
         return render_template("login.html")
-
 
     # registration redirect
     else:
@@ -99,6 +110,7 @@ def registerOperator():
     """Register operator"""
 
     if request.method == "POST":
+
         # check for name
         if not request.form.get("firstname"):
             return apology("Missing first name.")
@@ -131,6 +143,7 @@ def registerOperator():
         hash = generate_password_hash(request.form.get("password"))
    
 # TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
+#       CONSIDER STORING companyid IN GLOBAL VARIABLE
 
         # insert new user into database
         result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash) 
@@ -158,7 +171,7 @@ def registerOperator():
 def getCompanyName():
     """return company name from code"""
 
-    companyName = ""
+    companyname = ""
     if request.method == "POST":
 
         # check for company code
@@ -166,16 +179,16 @@ def getCompanyName():
             return apology("must provide company code", 403)
 
         companyid = request.form.get("companyid") 
-        
+
         # query database for company code
         db.execute("""SELECT companyname FROM companies 
                       WHERE companyid = ?;""", (companyid,))
         
         rows = db.fetchall()
         if len(rows) > 0:
-            companyName = rows[0]
+            companyname = rows[0]
 
-    return companyName
+    return companyname
 
 
 
@@ -264,7 +277,7 @@ def settings():
 @app.route("/")
 @login_required
 def index():
-    """Show portfolio of stocks"""
+    """Logged in screen"""
 #
 #    # populate user portfolio
 #    wallet = db.execute("SELECT shares, symbol FROM portfolio \
@@ -305,101 +318,6 @@ def index():
     return render_template("index.html")
 
 
-#@app.route("/buy", methods=["GET", "POST"])
-#@login_required
-#def buy():
-#
-#    """Buy shares of stock"""
-#    if request.method == "GET":
-#        return render_template("buy.html")
-#
-#    else:
-#        symbol = request.form.get("symbol")
-#        shares = request.form.get("shares")
-#
-#        try:
-#            shares = int(shares)
-#        except ValueError:
-#            return apology("Invalid quantity requested")
-#        else:
-#
-#            if symbol == None:
-#                return apology("Unrecognized stock symbol")
-#
-#            elif shares < 0:
-#                return apology("No refunds. Negative value entered")
-#
-#            else:
-#                stock = lookup(symbol)
-#                if lookup(symbol) == None:
-#                    return apology("Stock symbol not found")
-#
-#                # calculate total stock cost
-#                cost = shares * lookup(symbol)["price"]
-#
-#                # check cash in user's wallet
-#                cash = db.execute("SELECT cash FROM users WHERE \
-#                                   id=:user_id;", user_id=session["user_id"])
-#
-#                # calculate balance after purchase
-#                balance = cash[0]["cash"] - cost
-#                if balance < 0:
-#                    return apology("Insufficient funds.")
-#
-#                else:
-#                    # update history of transactions
-#                    db.execute("INSERT INTO transactions (symbol, shares, price, id) \
-#                                VALUES(:symbol, :shares, :price, :user_id)", \
-#                                symbol=stock["symbol"], shares=shares, \
-#                                price=usd(stock["price"]), user_id=session["user_id"])
-#
-#                    # update cash in users
-#                    db.execute("UPDATE users SET cash = cash - :purchase WHERE id=:user_id", \
-#                                user_id=session["user_id"], purchase=stock["price"] * shares)
-#
-#                    # calculate number of shares owned
-#                    owned = db.execute("SELECT shares, total FROM portfolio WHERE id=:user_id \
-#                                               AND symbol=:symbol", user_id=session["user_id"], \
-#                                               symbol=stock["symbol"])
-#
-#                    if owned:
-#                        # update shares in portfolio
-#                        total_shares = owned[0]["shares"] + shares
-#                        total_dec = Decimal(owned[0]["total"].strip('$'))
-#                        total_value = float(total_dec) + cost
-#
-#                        db.execute("UPDATE portfolio SET shares=:shares, total=:total \
-#                                    WHERE id=:user_id AND symbol=:symbol", \
-#                                    shares=total_shares, total=total_value, \
-#                                    user_id=session["user_id"], symbol=stock["symbol"])
-#
-#                    else:
-#                        # add portfolio record of stock
-#                        db.execute("INSERT INTO portfolio (name, shares, price, total, symbol, id) \
-#                                    VALUES(:name, :shares, :price, :total, :symbol, :user_id)", \
-#                                    name=stock["name"], shares=shares, price=usd(stock["price"]), \
-#                                    total=usd(shares * stock["price"]), symbol=stock["symbol"], \
-#                                    user_id=session["user_id"])
-#
-#
-#        # Redirect user to home page
-#        return redirect("/")
-#
-#
-#
-#@app.route("/history")
-#@login_required
-#def history():
-#    """Show history of transactions"""
-#
-#    # query transactions from transaction database
-#    transactions = db.execute("SELECT * FROM transactions WHERE \
-#                               id=:user_id", user_id=session["user_id"])
-#
-#    return render_template("history.html", transactions=transactions)
-#
-
-
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -409,93 +327,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
-
-
-
-#@app.route("/quote", methods=["GET", "POST"])
-#@login_required
-#def quote():
-#    """Get stock quote."""
-#
-#    if request.method == "POST":
-#        symbol = lookup(request.form.get("symbol"))
-#
-#        if symbol == None:
-#            return apology("Invalid symbol")
-#
-#        price = usd(symbol["price"])
-#        return render_template("quoted.html", stock=symbol, price=price)
-#
-#    else:
-#        return render_template("quote.html")
-
-
-
-#@app.route("/sell", methods=["GET", "POST"])
-#@login_required
-#def sell():
-#    """Sell shares of stock"""
-#
-#    if request.method == "GET":
-#        portfolio = db.execute("SELECT symbol FROM portfolio WHERE \
-#                                id=:user_id", user_id=session["user_id"])
-#        return render_template("sell.html", portfolio=portfolio)
-#
-#    else:
-#        symbol = request.form.get("symbol")
-#        shares = int(request.form.get("shares"))
-#        if not symbol:
-#            return apology("Select symbol")
-#
-#        # ensure positive integer input
-#        if not shares or shares < 1:
-#            return apology("Enter a positive number of shares to sell")
-#
-#        # query user portfolio
-#        user_stocks = db.execute("SELECT symbol, shares FROM portfolio WHERE \
-#                                  id=:user_id AND symbol=:symbol", user_id=session["user_id"], \
-#                                  symbol=symbol)
-#
-#        # subtract quantity of shares from currently owned
-#        available = int(user_stocks[0]["shares"])
-#        if available < shares:
-#            return apology("Insufficient shares")
-#
-#        # update remaining shares
-#        available -= shares
-#
-#        # lookup current value of share
-#        shareval = lookup(symbol)["price"]
-#        value = shareval * shares
-#
-#        # query and update user balance
-#        userbal = db.execute("SELECT cash FROM users WHERE id=:user_id", \
-#                              user_id=session["user_id"])
-#        balance = userbal[0]["cash"]
-#        balance += value
-#
-#        # update user portfolio databse
-#        db.execute("UPDATE portfolio SET shares=:shares, price=:price, \
-#                    total=:balance WHERE id=:user_id AND symbol=:symbol", \
-#                    shares=available, price=shareval, balance=balance, \
-#                    user_id=session["user_id"], symbol=symbol)
-#
-#        # remove stock record if no shares remain
-#        if available == 0:
-#            db.execute("DELETE FROM portfolio WHERE shares=0")
-#
-#        # insert record into transactions database
-#        db.execute("INSERT INTO transactions (symbol, shares, price, id) \
-#                    VALUES(:symbol, :shares, :price, :user_id)", \
-#                    symbol=symbol, shares=shares, price=value, \
-#                    user_id=session["user_id"])
-#
-#        # update users database for cash (increase balance)
-#        db.execute("UPDATE users SET cash=:balance WHERE id=:user_id", \
-#                    user_id=session["user_id"], balance=balance)
-#
-#    # Redirect user to home page
-#    return redirect("/")
 
 
 

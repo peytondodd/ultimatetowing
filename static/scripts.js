@@ -35,7 +35,9 @@ $(function() {
 		companyid: companyid
 	    },
 	    success: function(returnVal) {
-		cb_func(returnVal);
+		console.log("Business Incorporation #: " + returnVal);
+		console.log(companyid);
+		cb_func(companyid, returnVal);
 	    },
 	    error: function(request,error) {
 		console.log('Callback error.');
@@ -45,22 +47,25 @@ $(function() {
     }); 
 })
 
-function cb_func(data) {
-    $("#companyNameTitle").fadeOut(100, function() {
-	if(data == "") {
-	    companyNameTitle = "Company name not found. Please enter a valid code.";
+function cb_func(companyid, companyname) {
+    $("#companyname").fadeOut(100, function() {
+	this.companyid = companyid;
+	this.companyname = companyname;
+	if(companyname == "") {
+	    companyname = companyid + " Ontario Inc.";
 	} else {
-	    companyNameTitle = data;
+	    companyname = companyname;
 	}
-	$("#companyNameTitle").text(companyNameTitle);
+	$("#companyname").text(companyname);
     });
 
-    $("#companyNameTitle").fadeIn(250, function() {
-	if(data != "") {
-	    $("#operator_info_form").delay(1000).fadeIn("350");
+    $("#companyname").fadeIn(250, function() {
+	if(companyname != "") {
+	    $("#ownerInfoWrapper").delay(1000).fadeIn("350");
 	    hideCompanySelector();
 	} else {
-	    $("#operator_info_form").fadeOut("100");
+	    $("#ownerInfoWrapper").fadeIn("100");
+	    hideCompanySelector();
 	}
     });
 }
@@ -74,13 +79,13 @@ function hideCompanySelector() {
 }
 
 function showCompanySelector() {
-    $("#companyid").val("");
+    //$("#companyid").val("");
     $("#company_name_form").animate({
 	opacity: 1
     }, 300);
     $("#changeCompanyButton").fadeOut("150");
-    $("#operator_info_form").fadeOut("150");
-    $("#companyNameTitle").fadeOut("150");
+    $("#owner_info_form").fadeOut("150");
+    $("#companyname").fadeOut("150");
 }
 
 

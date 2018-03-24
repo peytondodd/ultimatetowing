@@ -24,6 +24,8 @@ $(document).ready(function() {
     });
 
     $("#changeCompanyButton").click(showCompanySelector);
+
+    configure();
 });
 
 $(function() {
@@ -88,6 +90,78 @@ function showCompanySelector() {
     $("#companyname").fadeOut("150");
 }
 
+var timeout; 
+
+function configure() {
+    // Configure typeahead
+    $("#q").typeahead({
+        highlight: false,
+        minLength: 1
+    },
+    {
+        display: function(suggestion) { return null; },
+        limit: 5,
+        source: function(value, syncResult, asyncResult) {
+
+
+            if (timeout) {
+                clearTimeout(timeout);
+            }
+
+            timeout = setTimeout(function() {
+                searchCompany(value, syncResult, asyncResult);
+            }, 50);
+
+        },
+        templates: {
+            suggestion: function(data) {
+                return "<div class='typeahead-row'>" +
+			    "<div class='company-name'>" + data[1] + "</div>" + 
+			    "<div class='company-id'>(" + data[0] + ")</div>" + 
+			"</div>"
+	    }
+        }
+    });
+
+    // Re-center map after place is selected from drop-down
+    $("#q").on("typeahead:selected", function(eventObject, suggestion, name) {
+	// populate title 
+	// place 'change' button next to it
+	// fade in operator info form
+	console.log("SELECTED: " + suggestion);
+    });
+
+    // Hide info window when text box has focus
+    $("#q").focus(function(eventData) {
+	// do something
+    });
+
+    // Re-enable ctrl- and right-clicking (and thus Inspect Element) on Google Map
+    // https://chrome.google.com/webstore/detail/allow-right-click/hompjdfbfmmmgflfjdlnkohcplmboaeo?hl=en
+    document.addEventListener("contextmenu", function(event) {
+        event.returnValue = true;
+        event.stopPropagation && event.stopPropagation();
+        event.cancelBubble && event.cancelBubble();
+    }, true);
+
+    // Give focus to text box
+    $("#q").focus();
+
+}
+
+// Search database for typeahead's suggestions
+function searchCompany(query, syncResults, asyncResults)
+{
+    // Get places matching query (asynchronously)
+    let parameters = {
+        q: query
+    };
+    $.getJSON("/searchCompany", parameters, function(data) {
+
+        // Call typeahead's callback with search results (i.e., places)
+        asyncResults(data);
+    });
+}
 
 
 

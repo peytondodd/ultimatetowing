@@ -99,3 +99,32 @@ main img
     margin: 10px auto;
     cursor: pointer;
 }
+
+.tt-menu {
+    background: white;
+    border-radius: 3px;
+    width: max-content;
+    max-width: 500px;
+    border: 1px solid #b2b2b288;
+}
+.typeahead-row {
+    clear: both;
+    cursor: pointer;
+    overflow: hidden;
+    padding: 10px;
+}
+.typeahead-row:hover {
+    background: #f8f8f8;
+}
+.typeahead-row .company-name {
+    float: left;
+    font-size: 11pt;
+    line-height: 30px;
+}
+.typeahead-row .company-id {
+    float: right;
+    color: #aaaaaa;
+    font-size: 8pt;
+    line-height: 30px;
+    padding-left: 20px;
+}

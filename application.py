@@ -1,4 +1,4 @@
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, jsonify
 from flask.ext.session import Session
 import sqlite3
 from tempfile import mkdtemp
@@ -236,13 +236,11 @@ def login():
 def searchCompany():
     """Search for companies that match query"""
 
-    column = ""
-    if not request.form.get("q"):
+    if not request.args.get("q"):
         raise RuntimeError("Search failed")
 
     q = "%" + request.args.get("q") + "%"
-    db.execute("""SELECT * FROM companies WHERE companycode 
-                  LIKE ? OR companyname LIKE ? LIMIT 5;""", (q,))
+    db.execute("""SELECT * FROM companies WHERE companyid LIKE ? OR companyname LIKE ? LIMIT 5;""", (q,q))
     
     rows = db.fetchall()
     

@@ -5,6 +5,7 @@ CREATE TABLE operators (
     email text not null unique,
     hash text not null,
     cell text,
+    member integer not null,
     companyid text not null,
         FOREIGN KEY (companyid) REFERENCES companies(companyid)
 );

@@ -2,32 +2,49 @@
 companyid = "";
 $(document).ready(function() {
 
-    $("#companyid").keypress(function() {
-	setTimeout(function() {
+    // enable submit button when input string length is 9 
+    $('#companyidcheck').on('change textInput input', function () {
+	companyid = this.value;
 
-	    companyid = $("#companyid").val();
+	var btn = $("#checkCompanyButton");
 
-	    if ($("#companyid").val().length>9){
-		companyid = $("#companyid").val().slice(0,9);
-		$("#companyid").val(companyid);
-	    }
+	if (companyid.length==9){
+	    btn.prop('disabled', false);
 
-	    if ($("#companyid").val().length==9){
-		$(':input[type="submit"]').prop('disabled', false);
-
-	    } else {
-		$(':input[type="submit"]').prop('disabled', true);
-	    }
-
-	},200);
-
+	} else {
+	    btn.prop('disabled', true);
+	}
     });
 
-    $("#changeCompanyButton").click(showCompanySelector);
+    // enable submit button when all input fields are filled
+    $('#company_info_form input').keyup(function() {
+	var empty = $("#company_info_form").find("input").filter(function() {
+	    return this.value === "";
+	});
+	if(empty.length) {
+	   $(':input[type="submit"]').prop('disabled', true);
+	} else {
+	   $(':input[type="submit"]').prop('disabled', false);
+	}
+    });
+
+    $('#operator_info_form input').keyup(function() {
+	var empty = $("#operator_info_form").find("input").filter(function() {
+	    return this.value === "";
+	});
+	if(empty.length) {
+	   $(':input[type="submit"]').prop('disabled', true);
+	} else {
+	   $(':input[type="submit"]').prop('disabled', false);
+	}
+    });
 
     configure();
 });
 
+/*
+ *  check if company exists on submit 
+ */
 $(function() {
     $('#company_name_form').submit(function() {
         $.ajax({
@@ -37,9 +54,7 @@ $(function() {
 		companyid: companyid
 	    },
 	    success: function(returnVal) {
-		console.log("Business Incorporation #: " + returnVal);
-		console.log(companyid);
-		cb_func(companyid, returnVal);
+		cb_func(returnVal);
 	    },
 	    error: function(request,error) {
 		console.log('Callback error.');
@@ -49,25 +64,16 @@ $(function() {
     }); 
 })
 
-function cb_func(companyid, companyname) {
-    $("#companyname").fadeOut(100, function() {
-	this.companyid = companyid;
-	this.companyname = companyname;
-	if(companyname == "") {
-	    companyname = companyid + " Ontario Inc.";
+function cb_func(data) {
+    $("#company_name_form").fadeOut(100, function() {
+	if(data == "") {
+	    // new company - show registration form
+	    $("#company_info_form #companyid").val(companyid);
+	    $("#company_info_form #companyidtitle").text("Reg. #: " + companyid);
+	    $("#company_info_form").fadeIn(200);
 	} else {
-	    companyname = companyname;
-	}
-	$("#companyname").text(companyname);
-    });
-
-    $("#companyname").fadeIn(250, function() {
-	if(companyname != "") {
-	    $("#ownerInfoWrapper").delay(1000).fadeIn("350");
-	    hideCompanySelector();
-	} else {
-	    $("#ownerInfoWrapper").fadeIn("100");
-	    hideCompanySelector();
+	    // existing company - redirect to request ownership page 
+	    window.location.href = "/requestOwnership";
 	}
     });
 }
@@ -76,13 +82,15 @@ function hideCompanySelector() {
     //$("#company_name_form").fadeOut("100");
     $("#company_name_form").animate({
 	opacity: 0
-    }, 300);
+    }, 150, function() {
+	$("#company_name_form").hide();
+    });
     $("#changeCompanyButton").fadeIn("150");
 }
 
 function showCompanySelector() {
     //$("#companyid").val("");
-    $("#company_name_form").animate({
+    $("#company_name_form").show().animate({
 	opacity: 1
     }, 300);
     $("#changeCompanyButton").fadeOut("150");
@@ -124,25 +132,20 @@ function configure() {
     });
 
     // Re-center map after place is selected from drop-down
-    $("#q").on("typeahead:selected", function(eventObject, suggestion, name) {
-	// populate title 
-	// place 'change' button next to it
-	// fade in operator info form
-	console.log("SELECTED: " + suggestion);
+    $("#q").on("typeahead:selected", function(eventObject, suggestion) {
+	// hide company name search form 
+	$("#company_name_form").fadeOut(200, function() {
+	    $("#companyNameTitle").text(suggestion[1]);
+	    $("#operator_info_form").fadeIn(200, function() {
+		$("#companyid").val(suggestion[0]);
+	    });
+	});
     });
 
     // Hide info window when text box has focus
     $("#q").focus(function(eventData) {
 	// do something
     });
-
-    // Re-enable ctrl- and right-clicking (and thus Inspect Element) on Google Map
-    // https://chrome.google.com/webstore/detail/allow-right-click/hompjdfbfmmmgflfjdlnkohcplmboaeo?hl=en
-    document.addEventListener("contextmenu", function(event) {
-        event.returnValue = true;
-        event.stopPropagation && event.stopPropagation();
-        event.cancelBubble && event.cancelBubble();
-    }, true);
 
     // Give focus to text box
     $("#q").focus();

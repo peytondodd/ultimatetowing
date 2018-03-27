@@ -1,18 +1,12 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Register Operator
+    Request Ownership
 {% endblock %}
 
 {% block main %}
-    <form id="company_name_form" action="/getCompanyName" method="post">
 
-	<div class="form-group">
-	    <input autocomplete="off" autofocus class="form-control" id="q" name="companycode" placeholder="Company Name" type="text" required/>
-	</div>
-
-    </form>
-
+    <h5>Request Ownership Form</h5>
     <form id="operator_info_form" action="/registerOperator" method="post">
 	<div id="companyTitleWrapper" class="row">
 	    <div class="col-xs-12 col-sm-12 col-md-4" id="companyNameTitle"></div>

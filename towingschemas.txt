@@ -43,3 +43,24 @@ CREATE TABLE owners_companies (
         FOREIGN KEY (ownerid) REFERENCES owners(ownerid),
         FOREIGN KEY (companyid) REFERENCES companies(companyid)
 );
+
+
+
+---------------------------------------------------------------------------------------------------------------------------------------
+							sqlite3 commands 
+---------------------------------------------------------------------------------------------------------------------------------------
+
+// select all operators working under company id 555555555
+SELECT firstname, lastname, companies.companyname FROM operators INNER JOIN companies ON companies.companyid = operators.companyid WHERE companies.companyid = 555555555;
+
+
+
+
+
+
+
+
+
+
+
+

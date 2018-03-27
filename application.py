@@ -10,7 +10,6 @@ from helpers import apology, login_required
 
 # Configure application
 app = Flask(__name__)
-companyid = "";
 # Ensure responses aren't cached
 @app.after_request
 def after_request(response):
@@ -29,19 +28,57 @@ Session(app)
 conn = sqlite3.connect("towing.db", check_same_thread=False)
 db = conn.cursor()
 
+@app.route("/getCompanyName", methods=["GET","POST"])
+def getCompanyName():
+    """return company name from code"""
+
+    companyname = ""
+    if request.method == "POST":
+
+        # check for company code
+        if not request.form.get("companyid"):
+            return apology("must provide company code", 403)
+
+        companyid = request.form.get("companyid") 
+
+        # query database for company code
+        db.execute("""SELECT companyname FROM companies 
+                      WHERE companyid = ?;""", (companyid,))
+        
+        rows = db.fetchall()
+        if len(rows) > 0:
+            companyname = rows[0]
+
+    return companyname
+
+
+@app.route("/requestOwnership", methods=["GET", "POST"])
+def requestOwnership():
+    """Request being added as company owner"""
+
+    if request.method == "POST":
+    # do stuff
+        return apology("function not completed")
+
+    # registration redirect
+    else:
+        return render_template("requestownership.html")
+
 @app.route("/registerCompany", methods=["GET", "POST"])
 def registerCompany():
     """Register company"""
 
     if request.method == "POST":
 
-        print(companyid)
+        # check/store company id
+        if not request.form.get("companyid"):
+            return apology("Missing company id.")
+        companyid = request.form.get("companyid")
 
         # check/store company name
         if not request.form.get("companyname"):
             return apology("Missing company name.")
         companyname = request.form.get("companyname")
-        print(companyname)
 
         # check/store company phone number
         if not request.form.get("phone"):
@@ -81,9 +118,6 @@ def registerCompany():
         # insert new owner into database
         result = db.execute("""INSERT INTO owners (firstname, lastname, email, hash) 
                                VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
-
-
-# TODO: retrieve companyid on form submit from scripts.js
 
         # insert new company into database
         db.execute("""INSERT INTO companies (companyid, companyname, phone) 
@@ -127,24 +161,25 @@ def registerOperator():
         elif not request.form.get("confirmation"):
             return apology("Confirm password.")
 
-        # check for matching passwords
-#        elif not request.form.get("cell"):
-#            return apology("Enter driver cell number")
-
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match.")
+
+        # check for company id
+        elif not request.form.get("companyid"):
+            return apology("Missing company id")
 
         firstname = request.form.get("firstname")
         lastname = request.form.get("lastname")
         email = request.form.get("email")
         hash = generate_password_hash(request.form.get("password"))
+        companyid = request.form.get("companyid")
    
 # TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
 #       CONSIDER STORING companyid IN GLOBAL VARIABLE
 
         # insert new user into database
-        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash) 
-                              VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
+        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash, member, companyid) 
+                              VALUES (?,?,?,?,?,?);""", (firstname, lastname, email, hash, 0, companyid))
 
 # TODO: CONSIDER SELECTING FROM ANOTHER TABLE 'TRUCKS' WHERE EACH TRUCK
 # TODO: IS REGISTERED TO ITS OWNER AND COMPANY? ENSURE THE OWNER HAS A
@@ -162,31 +197,6 @@ def registerOperator():
     # registration redirect
     else:
         return render_template("registeroperator.html")
-
-
-@app.route("/getCompanyName", methods=["GET","POST"])
-def getCompanyName():
-    """return company name from code"""
-
-    companyname = ""
-    global companyid
-    if request.method == "POST":
-
-        # check for company code
-        if not request.form.get("companyid"):
-            return apology("must provide company code", 403)
-
-        companyid = request.form.get("companyid") 
-
-        # query database for company code
-        db.execute("""SELECT companyname FROM companies 
-                      WHERE companyid = ?;""", (companyid,))
-        
-        rows = db.fetchall()
-        if len(rows) > 0:
-            companyname = rows[0]
-
-    return companyname
 
 
 

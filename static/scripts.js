@@ -27,9 +27,18 @@ $(document).ready(function() {
 	   $(':input[type="submit"]').prop('disabled', false);
 	}
     });
-
     $('#operator_info_form input').keyup(function() {
 	var empty = $("#operator_info_form").find("input").filter(function() {
+	    return this.value === "";
+	});
+	if(empty.length) {
+	   $(':input[type="submit"]').prop('disabled', true);
+	} else {
+	   $(':input[type="submit"]').prop('disabled', false);
+	}
+    });
+    $('#request_ownership_form input').keyup(function() {
+	var empty = $("#request_ownership_form").find("input").filter(function() {
 	    return this.value === "";
 	});
 	if(empty.length) {

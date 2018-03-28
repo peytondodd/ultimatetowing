@@ -35,10 +35,9 @@ def getCompanyName():
     companyname = ""
     if request.method == "POST":
 
-        # check for company code
+        # check/store company code
         if not request.form.get("companyid"):
             return apology("must provide company code", 403)
-
         companyid = request.form.get("companyid") 
 
         # query database for company code
@@ -63,7 +62,7 @@ def requestOwnership():
             return apology("Missing company id.")
         companyid = request.form.get("companyid")
         
-        # check for name
+        # check/store owner name
         if not request.form.get("firstname"):
             return apology("Missing first name.")
         if not request.form.get("lastname"):
@@ -71,7 +70,7 @@ def requestOwnership():
         firstname = request.form.get("firstname")
         lastname = request.form.get("lastname")
         
-        # check for email
+        # check/store owner email
         if not request.form.get("email"):
             return apology("Missing email address.")
         email = request.form.get("email")
@@ -90,7 +89,7 @@ def requestOwnership():
             return apology("Missing cell address.")
         cell = request.form.get("cell")
 
-        # insert new user into database
+        # insert new owner into database
         result = db.execute("""INSERT INTO owners (firstname, lastname, 
                                email, hash, cell) VALUES (?,?,?,?,?);""",
                                (firstname, lastname, email, hash, cell))
@@ -100,17 +99,20 @@ def requestOwnership():
             return apology("Email address already in use.")
 
         # query for current owner
-        db.execute("""SELECT owners.ownerid FROM owners INNER JOIN owners_companies ON owners_companies.ownerid = owners.ownerid WHERE owners_companies.companyid = ?;""", (companyid, ))
+        db.execute("""SELECT owners.ownerid FROM owners INNER JOIN owners_companies 
+                      ON owners_companies.ownerid = owners.ownerid WHERE 
+                      owners_companies.companyid = ?;""", (companyid, ))
 
         rows = db.fetchall() 
         ownerid = rows[0][0]
         # TODO: send request to current owner with new ownerid
 
         conn.commit()
+
         # successful registration direct
         return render_template("login.html")
 
-    # request to be an owner redirect
+    # request ownership redirect
     else:
         return render_template("requestownership.html")
 
@@ -157,8 +159,10 @@ def registerCompany():
             return apology("Passwords do not match.")
         hash = generate_password_hash(request.form.get("password"))
         
+        # query database for company
         db.execute("""SELECT companyname FROM companies
                       WHERE companyname = ?;""", (companyname,))
+
         rows = db.fetchall()
         if len(rows) > 0:
             return apology("Company name exists. Re-enter correct incorporation number.")
@@ -277,12 +281,9 @@ def login():
                           WHERE email = ?;""", (email,))
             rows = db.fetchall()
 
-        print(usertype)
-        print(rows)
         # Ensure username exists and password is correct
         if len(rows) !=1:
             return apology("Email not recognized", 403)
-
         if not check_password_hash(rows[0][1], request.form.get("password")):
             return apology("Incorrect password", 403)
 
@@ -300,9 +301,11 @@ def login():
 def searchCompany():
     """Search for companies that match query"""
 
+    # check for query
     if not request.args.get("q"):
         raise RuntimeError("Search failed")
 
+    # add wildcard to query and search database
     q = "%" + request.args.get("q") + "%"
     db.execute("""SELECT * FROM companies WHERE companyid LIKE ? 
                   OR companyname LIKE ? LIMIT 5;""", (q,q))
@@ -318,13 +321,11 @@ def settings():
     """Change user password"""
 
     if request.method =="POST":
-        # check form filled
+        # ensure form completion
         if not request.form.get("oldpassword"):
             return apology("Enter old password")
-
         elif not request.form.get("newpassword"):
             return apology("Enter new password")
-
         elif not request.form.get("confirmation"):
             return apology("Confirm new password")
 
@@ -356,6 +357,7 @@ def settings():
 @login_required
 def index():
     """Logged in screen"""
+    # display relevant dashboard (owner/operator)
 
     return render_template("index.html")
 
@@ -374,8 +376,7 @@ def logout():
 def linkOwnerCompany(ownerid, companyid):
     """Create link between company and owner in owners_companies"""
     
-    print(ownerid)
-    print(companyid)
+    # add link in joint table for owner & company
     db.execute("""INSERT INTO owners_companies 
                       VALUES (?, ?);""", (ownerid, companyid))
     

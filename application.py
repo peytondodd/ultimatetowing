@@ -57,10 +57,60 @@ def requestOwnership():
     """Request being added as company owner"""
 
     if request.method == "POST":
-    # do stuff
-        return apology("function not completed")
+        
+        # check/store company id
+        if not request.form.get("companyid"):
+            return apology("Missing company id.")
+        companyid = request.form.get("companyid")
+        
+        # check for name
+        if not request.form.get("firstname"):
+            return apology("Missing first name.")
+        if not request.form.get("lastname"):
+            return apology("Missing last name.")
+        firstname = request.form.get("firstname")
+        lastname = request.form.get("lastname")
+        
+        # check for email
+        if not request.form.get("email"):
+            return apology("Missing email address.")
+        email = request.form.get("email")
 
-    # registration redirect
+        # check/store owner password
+        if not request.form.get("password"):
+            return apology("Enter a password.")
+        elif not request.form.get("confirmation"):
+            return apology("Confirm password.")
+        elif request.form.get("password") != request.form.get("confirmation"):
+            return apology("Passwords do not match.")
+        hash = generate_password_hash(request.form.get("password"))
+
+        # check/store owner cell
+        if not request.form.get("cell"):
+            return apology("Missing cell address.")
+        cell = request.form.get("cell")
+
+        # insert new user into database
+        result = db.execute("""INSERT INTO owners (firstname, lastname, 
+                               email, hash, cell) VALUES (?,?,?,?,?);""",
+                               (firstname, lastname, email, hash, cell))
+
+        # user must provide unique email address 
+        if not result:
+            return apology("Email address already in use.")
+
+        # query for current owner
+        db.execute("""SELECT owners.ownerid FROM owners INNER JOIN owners_companies ON owners_companies.ownerid = owners.ownerid WHERE owners_companies.companyid = ?;""", (companyid, ))
+
+        rows = db.fetchall() 
+        ownerid = rows[0][0]
+        # TODO: send request to current owner with new ownerid
+
+        conn.commit()
+        # successful registration direct
+        return render_template("login.html")
+
+    # request to be an owner redirect
     else:
         return render_template("requestownership.html")
 
@@ -85,14 +135,12 @@ def registerCompany():
             return apology("Missing company phone number.")
         phone = request.form.get("phone")
 
-        # check/store owner first name
+        # check/store owner name
         if not request.form.get("firstname"):
             return apology("Missing first name.")
-        firstname = request.form.get("firstname")
-
-        # check/store owner last name
         if not request.form.get("lastname"):
             return apology("Missing last name.")
+        firstname = request.form.get("firstname")
         lastname = request.form.get("lastname")
 
         # check/store owner email
@@ -127,7 +175,16 @@ def registerCompany():
         if not result:
             return apology("Email address already in use.")
 
+        # get newly registered owner's id
+        db.execute("""SELECT ownerid FROM owners WHERE email = ?;""", (email, ))
+        rows = db.fetchall()
+        ownerid = rows[0][0]
+
         conn.commit()
+
+        # call link function
+        linkOwnerCompany(ownerid, companyid)
+
         # successful registration redirect
         return render_template("login.html")
 
@@ -145,45 +202,34 @@ def registerOperator():
         # check for name
         if not request.form.get("firstname"):
             return apology("Missing first name.")
-
         if not request.form.get("lastname"):
             return apology("Missing last name.")
-
+        firstname = request.form.get("firstname")
+        lastname = request.form.get("lastname")
+        
         # check for email
         if not request.form.get("email"):
             return apology("Missing email address.")
+        email = request.form.get("email")
 
-        # check for password
-        elif not request.form.get("password"):
+        # check/store owner password
+        if not request.form.get("password"):
             return apology("Enter a password.")
-
-        # check for password confirmation
         elif not request.form.get("confirmation"):
             return apology("Confirm password.")
-
         elif request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match.")
+        hash = generate_password_hash(request.form.get("password"))
 
         # check for company id
-        elif not request.form.get("companyid"):
+        if not request.form.get("companyid"):
             return apology("Missing company id")
-
-        firstname = request.form.get("firstname")
-        lastname = request.form.get("lastname")
-        email = request.form.get("email")
-        hash = generate_password_hash(request.form.get("password"))
         companyid = request.form.get("companyid")
-   
-# TODO: CHECK TO ENSURE OWNER WANTS THIS USER UNDER HIS TEAM?
-#       CONSIDER STORING companyid IN GLOBAL VARIABLE
 
         # insert new user into database
-        result = db.execute("""INSERT INTO operators (firstname, lastname, email, hash, member, companyid) 
-                              VALUES (?,?,?,?,?,?);""", (firstname, lastname, email, hash, 0, companyid))
-
-# TODO: CONSIDER SELECTING FROM ANOTHER TABLE 'TRUCKS' WHERE EACH TRUCK
-# TODO: IS REGISTERED TO ITS OWNER AND COMPANY? ENSURE THE OWNER HAS A
-# TODO: TRUCK ASSIGNED TO THIS OPERATOR?
+        result = db.execute("""INSERT INTO operators (firstname, lastname, 
+                               email, hash, member, companyid) VALUES (?,?,?,?,?,?);""",
+                               (firstname, lastname, email, hash, 0, companyid))
 
         # user must provide unique email address 
         if not result:
@@ -210,30 +256,38 @@ def login():
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
 
-        # Ensure username was submitted
+        # Form submission check 
         if not request.form.get("email"):
             return apology("missing email address", 403)
-
-        # Ensure password was submitted
         elif not request.form.get("password"):
             return apology("missing password", 403)
-
+        elif not request.form.get("usertype"):
+           return apology("user? owner? wat ru nigga?")
         email = request.form.get("email")
+        usertype = request.form.get("usertype")
 
+        rows = None
         # Query database for email address
-        db.execute("""SELECT * FROM operators 
-                      WHERE email = ?;""", (email,))
+        if usertype == "Operator":
+            db.execute("""SELECT email, hash FROM operators
+                          WHERE email = ?;""", (email,))
+            rows = db.fetchall()
+        elif usertype == "Owner":
+            db.execute("""SELECT email, hash FROM owners 
+                          WHERE email = ?;""", (email,))
+            rows = db.fetchall()
 
-        rows = db.fetchall()
+        print(usertype)
         print(rows)
-        print(rows[0])
-        
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
-            return apology("invalid email and/or password", 403)
+        if len(rows) !=1:
+            return apology("Email not recognized", 403)
+
+        if not check_password_hash(rows[0][1], request.form.get("password")):
+            return apology("Incorrect password", 403)
 
         # Remember which user has logged in
-        session["user_id"] = rows[0]["id"]
+        session["user_id"] = rows[0][0]
 
         # Redirect user to home page
         return redirect("/")
@@ -250,11 +304,13 @@ def searchCompany():
         raise RuntimeError("Search failed")
 
     q = "%" + request.args.get("q") + "%"
-    db.execute("""SELECT * FROM companies WHERE companyid LIKE ? OR companyname LIKE ? LIMIT 5;""", (q,q))
+    db.execute("""SELECT * FROM companies WHERE companyid LIKE ? 
+                  OR companyname LIKE ? LIMIT 5;""", (q,q))
     
     rows = db.fetchall()
     
     return jsonify(rows)
+
 
 @app.route("/settings", methods=["GET", "POST"])
 @login_required
@@ -315,6 +371,16 @@ def logout():
     return redirect("/")
 
 
+def linkOwnerCompany(ownerid, companyid):
+    """Create link between company and owner in owners_companies"""
+    
+    print(ownerid)
+    print(companyid)
+    db.execute("""INSERT INTO owners_companies 
+                      VALUES (?, ?);""", (ownerid, companyid))
+    
+    conn.commit()
+    
 
 def errorhandler(e):
     """Handle error"""

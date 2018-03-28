@@ -37,7 +37,6 @@ CREATE TABLE trucks (
 );
 
 CREATE TABLE owners_companies (
-    id integer primary key autoincrement not null,
     ownerid integer not null,
     companyid text not null,
         FOREIGN KEY (ownerid) REFERENCES owners(ownerid),

@@ -6,8 +6,12 @@
 
 {% block main %}
 
-    <h5>Request Ownership Form</h5>
-    <form id="operator_info_form" action="/registerOperator" method="post">
+    <div class="messageBox">
+	<div class="x">x</div> 
+	This company is already registered. Please fill out the following form to request being added as an owner.
+    </div>
+    <h3>Request Ownership Form</h3>
+    <form id="request_ownership_form" action="/requestOwnership" method="post">
 	<div id="companyTitleWrapper" class="row">
 	    <div class="col-xs-12 col-sm-12 col-md-4" id="companyNameTitle"></div>
 	</div>

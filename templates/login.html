@@ -7,6 +7,18 @@
 {% block main %}
     <form action="/login" method="post">
         <div class="form-group">
+	    <h4>Login as:</h4>
+	</div>
+        <div class="form-group">
+            <select id="usertype" autocomplete="off" autofocus class="form-control" name="usertype">
+		<option>Owner</option>
+		<option>Operator</option>
+	    </select>
+        </div>
+
+	<div class="h-divider"></div>
+
+        <div class="form-group">
             <input autocomplete="off" autofocus class="form-control" name="email" placeholder="Email Address" type="text"/>
         </div>
         <div class="form-group">

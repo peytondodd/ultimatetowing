@@ -39,6 +39,22 @@ $(document).ready(function() {
 	}
     });
 
+    // onload requestownership.html - get companyid parameter
+    if ( window.location.pathname == "/requestOwnership" ) {
+	$("#companyid").val( getUrlParameter('companyid') );
+    }
+
+    if ( window.location.pathname == "/login" ) {
+	$('#usertype>option:eq(1)').prop('selected', true);
+    }
+
+    // bind close message on clicking x
+    $('.messageBox .x').click(function() {
+	$(this).parent().fadeOut(function() {
+	    $(this).remove();
+	});
+    });
+
     configure();
 });
 
@@ -72,30 +88,10 @@ function cb_func(data) {
 	    $("#company_info_form #companyidtitle").text("Reg. #: " + companyid);
 	    $("#company_info_form").fadeIn(200);
 	} else {
-	    // existing company - redirect to request ownership page 
-	    window.location.href = "/requestOwnership";
+	    // existing company - redirect to request ownership page (pass companyid parameter)
+	    window.location.href = "/requestOwnership?companyid=" + companyid;
 	}
     });
-}
-
-function hideCompanySelector() {
-    //$("#company_name_form").fadeOut("100");
-    $("#company_name_form").animate({
-	opacity: 0
-    }, 150, function() {
-	$("#company_name_form").hide();
-    });
-    $("#changeCompanyButton").fadeIn("150");
-}
-
-function showCompanySelector() {
-    //$("#companyid").val("");
-    $("#company_name_form").show().animate({
-	opacity: 1
-    }, 300);
-    $("#changeCompanyButton").fadeOut("150");
-    $("#owner_info_form").fadeOut("150");
-    $("#companyname").fadeOut("150");
 }
 
 var timeout; 
@@ -133,9 +129,10 @@ function configure() {
 
     // Re-center map after place is selected from drop-down
     $("#q").on("typeahead:selected", function(eventObject, suggestion) {
-	// hide company name search form 
+	// hide company search form 
 	$("#company_name_form").fadeOut(200, function() {
 	    $("#companyNameTitle").text(suggestion[1]);
+	// show operator info form
 	    $("#operator_info_form").fadeIn(200, function() {
 		$("#companyid").val(suggestion[0]);
 	    });
@@ -165,8 +162,5 @@ function searchCompany(query, syncResults, asyncResults)
         asyncResults(data);
     });
 }
-
-
-
 
 

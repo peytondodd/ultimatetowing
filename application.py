@@ -32,7 +32,7 @@ db = conn.cursor()
 def getCompanyName():
     """return company name from code"""
 
-    companyname = ""
+    companyname = None
     if request.method == "POST":
 
         # check/store company code
@@ -266,29 +266,31 @@ def login():
         elif not request.form.get("password"):
             return apology("missing password", 403)
         elif not request.form.get("usertype"):
-           return apology("user? owner? wat ru nigga?")
+           return apology("user? owner? wat ru bruv?")
         email = request.form.get("email")
         usertype = request.form.get("usertype")
 
         rows = None
         # Query database for email address
         if usertype == "Operator":
-            db.execute("""SELECT email, hash FROM operators
+            db.execute("""SELECT operatorid, email, hash FROM operators
                           WHERE email = ?;""", (email,))
             rows = db.fetchall()
+
         elif usertype == "Owner":
-            db.execute("""SELECT email, hash FROM owners 
+            db.execute("""SELECT ownerid, email, hash FROM owners 
                           WHERE email = ?;""", (email,))
             rows = db.fetchall()
 
         # Ensure username exists and password is correct
         if len(rows) !=1:
             return apology("Email not recognized", 403)
-        if not check_password_hash(rows[0][1], request.form.get("password")):
+        if not check_password_hash(rows[0][2], request.form.get("password")):
             return apology("Incorrect password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0][0]
+        session["user_type"] = usertype
 
         # Redirect user to home page
         return redirect("/")
@@ -319,6 +321,9 @@ def searchCompany():
 @login_required
 def settings():
     """Change user password"""
+    
+    oldhash = None
+    rows = None
 
     if request.method =="POST":
         # ensure form completion
@@ -331,24 +336,44 @@ def settings():
 
         # check for matching new password
         elif request.form.get("newpassword") != request.form.get("confirmation"):
-            return apology("Passwords do not match")
+            return apology("New passwords do not match")
 
-        # query for current password hash
-        oldhash = db.execute("SELECT hash FROM users WHERE id=:id", \
-                              id=session["user_id"])
+        print(session["user_type"])
+        print(session["user_id"])
+
+        # query for hash of password
+        if session["user_type"] == "Owner":
+            db.execute("""SELECT hash FROM owners WHERE ownerid = ?;""", \
+                          (session["user_id"],))
+            rows = db.fetchall()
+        elif session["user_type"] == "Operator":
+            db.execute("""SELECT hash FROM operators WHERE operatorid = ?;""", \
+                          (session["user_id"],))
+            rows = db.fetchall()
+
+        oldhash = rows[0][0]
 
         # check current password validity
-        if not check_password_hash(oldhash[0]["hash"], request.form.get("oldpassword")):
+        if not check_password_hash(oldhash, request.form.get("oldpassword")):
             return apology("Re-enter current password")
 
         # hash and update new password
-        db.execute("UPDATE users SET hash=:hash WHERE id=:id", \
-                    hash=generate_password_hash(request.form.get("newpassword")), \
-                    id=session["user_id"])
+        if session["user_type"] == "Owner":
+            db.execute("""UPDATE owners SET hash = ? WHERE ownerid = ?""", \
+                          (generate_password_hash(request.form.get("newpassword")), session["user_id"]))
 
+        elif session["user_type"] == "Operator":
+            db.execute("""UPDATE operators SET hash = ? WHERE operatorid = ?""", \
+                          (generate_password_hash(request.form.get("newpassword")), session["user_id"]))
+
+        # save changes to the database
+        conn.commit()
+
+        # password change success, send home
         return redirect("/")
 
     else:
+        # password change failed, refresh settings
         return render_template("settings.html")
 
 

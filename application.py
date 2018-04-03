@@ -32,7 +32,7 @@ db = conn.cursor()
 def getCompanyName():
     """return company name from code"""
 
-    companyname = None
+    companyname = ""
     if request.method == "POST":
 
         # check/store company code

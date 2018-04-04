@@ -384,8 +384,21 @@ def index():
     """Logged in screen"""
     # display relevant dashboard (owner/operator)
 
-    return render_template("index.html")
+    if session["user_type"] == "Owner":
+        return render_template("teammanagement.html")
 
+    elif session["user_type"] == "Operator":
+        return render_template("incidentreport.html")
+
+
+
+@app.route("/teamManagement")
+@login_required
+def teamManagement():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("teammanagement.html")
 
 @app.route("/logout")
 def logout():

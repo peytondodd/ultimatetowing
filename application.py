@@ -391,6 +391,9 @@ def index():
         return render_template("incidentreport.html")
 
 
+####################################################################
+########################## Owner Functions #########################
+####################################################################
 
 @app.route("/teamManagement")
 @login_required
@@ -399,6 +402,74 @@ def teamManagement():
     # display relevant dashboard (owner/operator)
 
     return render_template("teammanagement.html")
+
+@app.route("/truckManagement")
+@login_required
+def truckManagement():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("truckmanagement.html")
+
+@app.route("/poundManagement")
+@login_required
+def poundManagement():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("poundmanagement.html")
+
+
+####################################################################
+######################## Operator Functions ########################
+####################################################################
+
+@app.route("/incidentReport")
+@login_required
+def incidentReport():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("incidentreport.html")
+
+@app.route("/incidentHistory")
+@login_required
+def incidentHistory():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("incidenthistory.html")
+
+@app.route("/impoundedVehicles")
+@login_required
+def impoundedVehicles():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("impoundedvehicles.html")
+
+
+##############################################################
+######################## Map Function ########################
+##############################################################
+
+@app.route("/map")
+@login_required
+def map():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("map.html")
+
+
+
+
+
+
+
+
+
+
 
 @app.route("/logout")
 def logout():

@@ -26,6 +26,11 @@ nav .navbar-brand .green
     color: #2e944b;
 }
 
+.container {
+    height: auto;
+    overflow: hidden;
+}
+
 .dropdown-menu {
     margin-top: 0;
 }
@@ -147,4 +152,8 @@ main img
 
 #map {
     position: initial !important;
+}
+
+#map > div {
+    overflow: hidden;
 }

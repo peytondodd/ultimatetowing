@@ -1,6 +1,65 @@
 // Towing Application
+
+// Company ID
 companyid = "";
+
+// Google Map
+let map;
+
+// Markers for map
+let markers = [];
+
+// Info window
+let info = new google.maps.InfoWindow();
+
+// Execute when the DOM is fully loaded
 $(document).ready(function() {
+
+    // Styles for map
+    // https://developers.google.com/maps/documentation/javascript/styling
+    let styles = [
+
+        // Hide Google's labels
+        {
+            featureType: "all",
+            elementType: "labels",
+            stylers: [
+                {visibility: "off"}
+            ]
+        },
+
+        // Hide roads
+        {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [
+                {visibility: "off"}
+            ]
+        }
+
+    ];
+
+    // Options for map
+    // https://developers.google.com/maps/documentation/javascript/reference#MapOptions
+    let options = {
+	center: {lat: 43.7037, lng: -79.3646}, // Toronto, Canada
+        disableDefaultUI: true,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        maxZoom: 14,
+        panControl: true,
+        zoom: 12,
+        zoomControl: true
+    };
+
+    // Get DOM node in which map will be instantiated
+    let canvas = $("#map").get(0);
+
+    // Instantiate map
+    map = new google.maps.Map(canvas, options);
+
+    // Configure UI once Google Map is idle (i.e., loaded)
+    google.maps.event.addListenerOnce(map, "idle", configure);
+
 
     // enable submit button when input string length is 9 
     $('#companyidcheck').on('change textInput input', function () {
@@ -64,8 +123,167 @@ $(document).ready(function() {
 	});
     });
 
-    configure();
+    configureTypeahead();
 });
+
+function locateMe() {
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+	navigator.geolocation.getCurrentPosition(function(position) {
+	    var pos = {
+		lat: position.coords.latitude,
+		lng: position.coords.longitude
+	    };
+
+	    var image = "/static/redtruck-40.png";
+	    marker = new google.maps.Marker({
+		position: pos,
+		map: map,
+		animation: google.maps.Animation.DROP,
+		icon: image,
+		title: 'Me :)'
+	    });
+
+	    marker.addListener('click', function() {
+		info.open(map, marker);
+	    });
+
+	    info.setPosition(pos);
+	    info.setContent('It\'s me! Mario');
+
+	}, function() {
+	    handleLocationError(true, info, map.getCenter());
+	});
+    } else {
+	// Browser doesn't support Geolocation
+	handleLocationError(false, info, map.getCenter());
+    }
+}
+
+function handleLocationError(browserHasGeolocation, info, pos) {
+    info.setPosition(pos);
+    info.setContent(browserHasGeolocation ?
+	    'Error: The Geolocation service failed.' :
+	    'Error: Your browser doesn\'t support geolocation.');
+    info.open(map);
+}
+
+// Add marker for place to map
+function addMarker(place)
+{
+    // var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+    var image = 'http://icons.iconarchive.com/icons/icons-land/sport/24/Soccer-Ball-icon.png';
+    var title = place.place_name + ' | ' + place.admin_name2 + ", " + place.admin_name1;
+    var marker = new google.maps.Marker({
+          position: {lat: place.latitude, lng: place.longitude},
+          map: map,
+          title: title,
+          icon: image
+    });
+
+    markers.push(marker);
+
+    marker.addListener("click", function(){
+
+        let parameters = {
+            geo: place.postal_code
+        };
+
+        $.getJSON("/articles", parameters, function(data, textStatus, jqXHR) {
+
+            var content = "<ul class='articlelist'>";
+
+            for (var article of data) {
+
+                content += `<li>
+                <a href="${article.link}" target="_blank">${article.title}</a>
+                </li>`;
+            }
+
+            content += "</ul>";
+
+            showInfo(marker,content);
+        });
+
+    });
+
+
+}
+
+var timeout;
+
+// Configure application
+function configure()
+{
+    // show my location
+    locateMe();
+
+    /*
+    // Update UI after map has been dragged
+    google.maps.event.addListener(map, "dragend", function() {
+
+        // If info window isn't open
+        // http://stackoverflow.com/a/12410385
+        if (!info.getMap || !info.getMap())
+        {
+            locateMe();
+        }
+
+    });
+    */
+}
+
+
+// Remove markers from map
+function removeMarkers()
+{
+
+    for (var i = 0; i < markers.length; i++) {
+        markers[i].setMap(null);
+    }
+
+}
+
+
+// Search database for typeahead's suggestions
+function search(query, syncResults, asyncResults)
+{
+    // Get places matching query (asynchronously)
+    let parameters = {
+        q: query
+    };
+    $.getJSON("/search", parameters, function(data, textStatus, jqXHR) {
+
+        // Call typeahead's callback with search results (i.e., places)
+        asyncResults(data);
+    });
+}
+
+
+// Show info window at marker with content
+function showInfo(marker, content)
+{
+    // Start div
+    let div = "<div id='info'>";
+    if (typeof(content) == "undefined")
+    {
+        // http://www.ajaxload.info/
+        div += "<img alt='loading' src='/static/ajax-loader.gif'/>";
+    }
+    else
+    {
+        div += content;
+    }
+
+    // End div
+    div += "</div>";
+
+    // Set info window's content
+    info.setContent(div);
+
+    // Open info window (if not already open)
+    info.open(map, marker);
+}
 
 /*
  *  check if company exists on submit 
@@ -105,7 +323,7 @@ function cb_func(data) {
 
 var timeout; 
 
-function configure() {
+function configureTypeahead() {
     // Configure typeahead
     $("#q").typeahead({
         highlight: false,
@@ -172,4 +390,54 @@ function searchCompany(query, syncResults, asyncResults)
     });
 }
 
+
+info = new google.maps.InfoWindow;
+
+function initMap() {
+    // Create a map object and specify the DOM element for display.
+    var map = new google.maps.Map(document.getElementById('map'), {
+	center: {lat: 43.7037, lng: -79.3646},
+	zoom: 12,
+	gestureHandling: 'greedy'
+    });
+
+    // Try HTML5 geolocation.
+    if (navigator.geolocation) {
+	navigator.geolocation.getCurrentPosition(function(position) {
+	    var pos = {
+		lat: position.coords.latitude,
+		lng: position.coords.longitude
+	    };
+
+	    marker = new google.maps.Marker({
+		position: pos,
+		map: map,
+		title: 'Me :)'
+	    });
+
+	    marker.addListener('click', function() {
+		info.open(map, marker);
+	    });
+
+	    info.setPosition(pos);
+	    info.setContent('It\'s me! Mario');
+	    info.open(map);
+	    map.setCenter(pos);
+
+	}, function() {
+	    handleLocationError(true, info, map.getCenter());
+	});
+    } else {
+	// Browser doesn't support Geolocation
+	handleLocationError(false, info, map.getCenter());
+    }
+}
+
+function handleLocationError(browserHasGeolocation, info, pos) {
+    info.setPosition(pos);
+    info.setContent(browserHasGeolocation ?
+	    'Error: The Geolocation service failed.' :
+	    'Error: Your browser doesn\'t support geolocation.');
+    info.open(map);
+}
 

@@ -292,6 +292,12 @@ def login():
         session["user_id"] = rows[0][0]
         session["user_type"] = usertype
 
+        # store companyid
+        db.execute("""SELECT companyid FROM owners_companies 
+                      WHERE ownerid=?;""", (session["user_id"], ))
+        rows = db.fetchall() 
+        session["companyid"] = rows[0][0]
+
         # Redirect user to home page
         return redirect("/")
 
@@ -338,9 +344,6 @@ def settings():
         elif request.form.get("newpassword") != request.form.get("confirmation"):
             return apology("New passwords do not match")
 
-        print(session["user_type"])
-        print(session["user_id"])
-
         # query for hash of password
         if session["user_type"] == "Owner":
             db.execute("""SELECT hash FROM owners WHERE ownerid = ?;""", \
@@ -357,6 +360,7 @@ def settings():
         if not check_password_hash(oldhash, request.form.get("oldpassword")):
             return apology("Re-enter current password")
 
+        # check for the use
         # hash and update new password
         if session["user_type"] == "Owner":
             db.execute("""UPDATE owners SET hash = ? WHERE ownerid = ?""", \
@@ -385,10 +389,11 @@ def index():
     # display relevant dashboard (owner/operator)
 
     if session["user_type"] == "Owner":
-        return render_template("teammanagement.html")
+
+        return redirect("/teamManagement")
 
     elif session["user_type"] == "Operator":
-        return render_template("incidentreport.html")
+        return redirect("/incidentReport")
 
 
 ####################################################################
@@ -399,9 +404,17 @@ def index():
 @login_required
 def teamManagement():
     """Owner team management page"""
-    # display relevant dashboard (owner/operator)
 
-    return render_template("teammanagement.html")
+    companyid = session["companyid"] 
+
+    # query for operators in company
+    db.execute("""SELECT * FROM operators WHERE companyid=?""", 
+            (companyid, ))
+    team = db.fetchall()
+
+    # pass team to jinja in html
+    return render_template("teammanagement.html", team=team)
+
 
 @app.route("/truckManagement")
 @login_required
@@ -409,15 +422,32 @@ def truckManagement():
     """Owner team management page"""
     # display relevant dashboard (owner/operator)
 
-    return render_template("truckmanagement.html")
+    companyid = session["companyid"] 
+
+    # query for company trucks
+    db.execute("""SELECT * FROM trucks WHERE companyid=?""", 
+                  (companyid, ))
+    garage = db.fetchall()
+
+    # pass garage to jinja in html
+    return render_template("truckmanagement.html", garage=garage)
+
 
 @app.route("/poundManagement")
 @login_required
 def poundManagement():
     """Owner team management page"""
-    # display relevant dashboard (owner/operator)
+    # display pound information
 
-    return render_template("poundmanagement.html")
+    companyid = session["companyid"] 
+
+    # query for pounds
+    db.execute("""SELECT * FROM pounds WHERE companyid=?""", 
+                  (companyid, ))
+    pounds = db.fetchall()
+
+    # pass pounds to jinja in html
+    return render_template("poundmanagement.html", pounds=pounds)
 
 
 ####################################################################
@@ -463,14 +493,6 @@ def map():
 
 
 
-
-
-
-
-
-
-
-
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -481,6 +503,86 @@ def logout():
     # Redirect user to login form
     return redirect("/")
 
+
+
+@app.route("/addPound", methods=["GET", "POST"])
+@login_required
+def addPound():
+    """Add new pound to company"""
+
+    if request.method == "POST":
+
+        # check/store pound address
+        if not request.form.get("address"):
+            return apology("Missing address.")
+        address = request.form.get("address")
+
+        # check/store pound city
+        if not request.form.get("city"):
+            return apology("Missing city.")
+        city = request.form.get("city")
+
+        # check/store pound phone number
+        if not request.form.get("phone"):
+            return apology("Missing company phone number.")
+        phone = request.form.get("phone")
+        
+        companyid = session["companyid"]
+
+    #TODO: Geocode address and store long, lat? or consider calling function to retrieve geocode?
+
+        db.execute("""INSERT INTO pounds (address, city, phone, companyid)
+                      VALUES (?,?,?,?);""", (address, city, phone, companyid, ))
+        conn.commit()
+
+        # redirect user to pound management
+        return redirect("/poundManagement")
+
+    else:
+        # redirect to form
+        return render_template("addpound.html")
+
+
+
+@app.route("/addTruck", methods=["GET", "POST"])
+@login_required
+def addTruck():
+    """Add truck to company fleet"""
+
+    if request.method == "POST":
+
+        # check/store truck make
+        if not request.form.get("make"):
+            return apology("Missing make.")
+        make = request.form.get("make")
+
+        # check/store truck model
+        if not request.form.get("model"):
+            return apology("Missing model.")
+        model = request.form.get("model")
+
+        # check/store truck license plate
+        if not request.form.get("licenseplate"):
+            return apology("Missing license plate number.")
+        licenseplate = request.form.get("licenseplate")
+        
+        companyid = session["companyid"]
+
+    #TODO: assign operator to truck (currently nullable in db)
+        #operatorid = session["operatorid"]
+        
+        db.execute("""INSERT INTO trucks (make, model, licenseplate, companyid)
+                      VALUES (?,?,?,?);""", (make, model, licenseplate, companyid, ))
+        conn.commit()
+
+        # redirect user to pound management
+        return redirect("/truckManagement")
+
+    else:
+        # redirect to form
+        return render_template("addtruck.html")
+
+        
 
 def linkOwnerCompany(ownerid, companyid):
     """Create link between company and owner in owners_companies"""

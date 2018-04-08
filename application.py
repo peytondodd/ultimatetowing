@@ -450,60 +450,6 @@ def poundManagement():
     return render_template("poundmanagement.html", pounds=pounds)
 
 
-####################################################################
-######################## Operator Functions ########################
-####################################################################
-
-@app.route("/incidentReport")
-@login_required
-def incidentReport():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
-
-    return render_template("incidentreport.html")
-
-@app.route("/incidentHistory")
-@login_required
-def incidentHistory():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
-
-    return render_template("incidenthistory.html")
-
-@app.route("/impoundedVehicles")
-@login_required
-def impoundedVehicles():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
-
-    return render_template("impoundedvehicles.html")
-
-
-##############################################################
-######################## Map Function ########################
-##############################################################
-
-@app.route("/map")
-@login_required
-def map():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
-
-    return render_template("map.html")
-
-
-
-@app.route("/logout")
-def logout():
-    """Log user out"""
-
-    # Forget any user_id
-    session.clear()
-
-    # Redirect user to login form
-    return redirect("/")
-
-
 
 @app.route("/addPound", methods=["GET", "POST"])
 @login_required
@@ -581,6 +527,61 @@ def addTruck():
     else:
         # redirect to form
         return render_template("addtruck.html")
+
+
+
+####################################################################
+######################## Operator Functions ########################
+####################################################################
+
+@app.route("/incidentReport")
+@login_required
+def incidentReport():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("incidentreport.html")
+
+@app.route("/incidentHistory")
+@login_required
+def incidentHistory():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("incidenthistory.html")
+
+@app.route("/impoundedVehicles")
+@login_required
+def impoundedVehicles():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("impoundedvehicles.html")
+
+
+##############################################################
+######################## Map Function ########################
+##############################################################
+
+@app.route("/map")
+@login_required
+def map():
+    """Owner team management page"""
+    # display relevant dashboard (owner/operator)
+
+    return render_template("map.html")
+
+
+
+@app.route("/logout")
+def logout():
+    """Log user out"""
+
+    # Forget any user_id
+    session.clear()
+
+    # Redirect user to login form
+    return redirect("/")
 
         
 

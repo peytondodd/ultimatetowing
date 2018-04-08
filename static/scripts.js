@@ -168,6 +168,28 @@ function handleLocationError(browserHasGeolocation, info, pos) {
     info.open(map);
 }
 
+// update truck coordinates
+function update()
+{
+    // Get places within bounds (asynchronously)
+    let parameters = {
+    };
+    $.getJSON("/update", parameters, function(data) {
+	// Remove old markers from map
+
+	console.log(data);
+
+	/*
+	// Add new markers to map
+	for (let i = 0; i < data.length; i++)
+	{
+	    addMarker(data[i]);
+	}
+	*/
+    });
+};
+
+
 // Add marker for place to map
 function addMarker(place)
 {
@@ -189,21 +211,10 @@ function addMarker(place)
             geo: place.postal_code
         };
 
-        $.getJSON("/articles", parameters, function(data, textStatus, jqXHR) {
+        $.getJSON("/geo", parameters, function(data, textStatus, jqXHR) {
 
-            var content = "<ul class='articlelist'>";
+	});
 
-            for (var article of data) {
-
-                content += `<li>
-                <a href="${article.link}" target="_blank">${article.title}</a>
-                </li>`;
-            }
-
-            content += "</ul>";
-
-            showInfo(marker,content);
-        });
 
     });
 
@@ -218,7 +229,6 @@ function configure()
     // show my location
     locateMe();
 
-    /*
     // Update UI after map has been dragged
     google.maps.event.addListener(map, "dragend", function() {
 
@@ -226,11 +236,10 @@ function configure()
         // http://stackoverflow.com/a/12410385
         if (!info.getMap || !info.getMap())
         {
-            locateMe();
+	  update()
         }
 
     });
-    */
 }
 
 
@@ -392,46 +401,6 @@ function searchCompany(query, syncResults, asyncResults)
 
 
 info = new google.maps.InfoWindow;
-
-function initMap() {
-    // Create a map object and specify the DOM element for display.
-    var map = new google.maps.Map(document.getElementById('map'), {
-	center: {lat: 43.7037, lng: -79.3646},
-	zoom: 12,
-	gestureHandling: 'greedy'
-    });
-
-    // Try HTML5 geolocation.
-    if (navigator.geolocation) {
-	navigator.geolocation.getCurrentPosition(function(position) {
-	    var pos = {
-		lat: position.coords.latitude,
-		lng: position.coords.longitude
-	    };
-
-	    marker = new google.maps.Marker({
-		position: pos,
-		map: map,
-		title: 'Me :)'
-	    });
-
-	    marker.addListener('click', function() {
-		info.open(map, marker);
-	    });
-
-	    info.setPosition(pos);
-	    info.setContent('It\'s me! Mario');
-	    info.open(map);
-	    map.setCenter(pos);
-
-	}, function() {
-	    handleLocationError(true, info, map.getCenter());
-	});
-    } else {
-	// Browser doesn't support Geolocation
-	handleLocationError(false, info, map.getCenter());
-    }
-}
 
 function handleLocationError(browserHasGeolocation, info, pos) {
     info.setPosition(pos);

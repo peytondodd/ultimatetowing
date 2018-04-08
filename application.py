@@ -461,6 +461,41 @@ def map():
 
     return render_template("map.html")
 
+@app.route("/geo")
+@login_required
+def geo():
+    """store coordinates in active_trucks"""
+        
+    if session["user_type"] == "Operator":
+        db.execute("""INSERT into active_trucks (lat, lon) WHERE userid = ?;""", \
+                      (session["user_id"],))
+    
+
+@app.route("/update")
+def update():
+    """get active truck coordinates"""
+    
+    trucks = []
+
+    # get position of active trucks
+    db.execute("""SELECT operatorid, lat, lon FROM active_trucks WHERE operatorid = ?;""", \
+                  (session["user_id"],))
+
+    rows = db.fetchall()
+
+    for row in rows:
+
+        truck = {
+                "operatorid": row[0],
+                "lat": row[1],
+                "lon": row[2]
+        }
+        
+        trucks.append(truck.copy())
+
+    return trucks
+
+
 
 
 

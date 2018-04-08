@@ -43,6 +43,12 @@ CREATE TABLE owners_companies (
         FOREIGN KEY (companyid) REFERENCES companies(companyid)
 );
 
+CREATE TABLE active_trucks (
+    lat text not null,
+    lon text not null,
+    operatorid integer not null,
+        FOREIGN KEY (operatorid) REFERENCES operators(operatorid)
+);
 
 
 ---------------------------------------------------------------------------------------------------------------------------------------

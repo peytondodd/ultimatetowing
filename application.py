@@ -1,12 +1,14 @@
 from flask import Flask, flash, redirect, render_template, request, session, jsonify
 from flask.ext.session import Session
-import sqlite3
 from tempfile import mkdtemp
 from werkzeug.exceptions import default_exceptions
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from decimal import Decimal
 from helpers import apology, login_required
+
+import sqlite3
+import datetime
 
 # Configure application
 app = Flask(__name__)
@@ -404,6 +406,7 @@ def index():
 @login_required
 def teamManagement():
     """Owner team management page"""
+    
 
     companyid = session["companyid"] 
 
@@ -414,6 +417,62 @@ def teamManagement():
 
     # pass team to jinja in html
     return render_template("teammanagement.html", team=team)
+
+    
+
+@app.route("/removeOperator", methods=["GET", "POST"])
+def removeOperator():
+    """Owner removes operator from team"""
+
+    if not request.args.get("operatorid"):
+        raise RuntimeError("Error: something went wrong!")
+
+    operatorid = request.args.get("operatorid")
+
+    # query for operator details
+    db.execute("""SELECT 
+                    operatorid,
+                    firstname,
+                    lastname,
+                    email,
+                    hash,
+                    cell,
+                    companyid 
+                  FROM operators
+                  WHERE operatorid=?;""", (operatorid, ))
+    operator = db.fetchall()[0]
+
+    archived_date = datetime.datetime.now()
+
+    # add operator into archived_operators table
+    db.execute("""INSERT INTO archived_operators (
+                    archived_date,
+                    operatorid,
+                    firstname,
+                    lastname,
+                    email,
+                    hash,
+                    cell,
+                    companyid )
+                  VALUES (?,?,?,?,?,?,?,?);""", (
+                    archived_date,
+                    operator[0],
+                    operator[1],
+                    operator[2],
+                    operator[3],
+                    operator[4],
+                    operator[5],
+                    operator[6], ))
+    conn.commit()
+        
+    # delete operator from operators
+    db.execute("""DELETE FROM operators
+                  WHERE operatorid = ?;""", (operatorid, )) 
+    conn.commit()
+
+    # reload team management page
+    return teamManagement() 
+
 
 
 @app.route("/truckManagement")
@@ -431,6 +490,98 @@ def truckManagement():
 
     # pass garage to jinja in html
     return render_template("truckmanagement.html", garage=garage)
+
+
+
+@app.route("/addTruck", methods=["GET", "POST"])
+@login_required
+def addTruck():
+    """Add truck to company fleet"""
+
+    if request.method == "POST":
+
+        # check/store truck make
+        if not request.form.get("make"):
+            return apology("Missing make.")
+        make = request.form.get("make")
+
+        # check/store truck model
+        if not request.form.get("model"):
+            return apology("Missing model.")
+        model = request.form.get("model")
+
+        # check/store truck license plate
+        if not request.form.get("licenseplate"):
+            return apology("Missing license plate number.")
+        licenseplate = request.form.get("licenseplate")
+        
+        companyid = session["companyid"]
+
+    #TODO: assign operator to truck (currently nullable in db)
+        #operatorid = session["operatorid"]
+        
+        db.execute("""INSERT INTO trucks (make, model, licenseplate, companyid)
+                      VALUES (?,?,?,?);""", (make, model, licenseplate, companyid, ))
+        conn.commit()
+
+        # redirect user to pound management
+        return redirect("/truckManagement")
+
+    else:
+        # redirect to form
+        return render_template("addtruck.html")
+
+
+
+@app.route("/removeTruck", methods=["GET", "POST"])
+def removeTruck():
+    """Owner removes truck from company"""
+
+    if not request.args.get("truckid"):
+        raise RuntimeError("Error: something went wrong!")
+
+    truckid = request.args.get("truckid")
+
+    # query for operator details
+    db.execute("""SELECT 
+                    truckid,
+                    make,
+                    model,
+                    licenseplate,
+                    companyid,
+                    operatorid
+                  FROM trucks
+                  WHERE truckid=?;""", (truckid, ))
+    truck = db.fetchall()[0]
+    archived_date = datetime.datetime.now()
+
+    # add operator into archived_trucks table
+    db.execute("""INSERT INTO archived_trucks (
+                    archived_date,
+                    truckid,
+                    make,
+                    model,
+                    licenseplate,
+                    companyid,
+                    operatorid )
+                  VALUES (?,?,?,?,?,?,?);""", (
+                    archived_date,
+                    truck[0],
+                    truck[1],
+                    truck[2],
+                    truck[3],
+                    truck[4],
+                    truck[5], ))
+    conn.commit()
+        
+    # delete operator from operators
+    db.execute("""DELETE FROM trucks
+                  WHERE truckid = ?;""", (truckid, )) 
+    conn.commit()
+
+    # reload team management page
+    return truckManagement() 
+
 
 
 @app.route("/poundManagement")
@@ -490,43 +641,53 @@ def addPound():
 
 
 
-@app.route("/addTruck", methods=["GET", "POST"])
-@login_required
-def addTruck():
-    """Add truck to company fleet"""
+@app.route("/removePound", methods=["GET", "POST"])
+def removePound():
+    """Owner removes pound from company"""
 
-    if request.method == "POST":
+    if not request.args.get("poundid"):
+        raise RuntimeError("Error: something went wrong!")
 
-        # check/store truck make
-        if not request.form.get("make"):
-            return apology("Missing make.")
-        make = request.form.get("make")
+    poundid = request.args.get("poundid")
 
-        # check/store truck model
-        if not request.form.get("model"):
-            return apology("Missing model.")
-        model = request.form.get("model")
+    # query for operator details
+    db.execute("""SELECT 
+                    poundid,
+                    address,
+                    city,
+                    phone,
+                    companyid
+                  FROM pounds
+                  WHERE poundid=?;""", (poundid, ))
+    pound = db.fetchall()[0]
 
-        # check/store truck license plate
-        if not request.form.get("licenseplate"):
-            return apology("Missing license plate number.")
-        licenseplate = request.form.get("licenseplate")
+    archived_date = datetime.datetime.now()
+
+    # add pound into archived_pounds table
+    db.execute("""INSERT INTO archived_pounds (
+                    archived_date,
+                    poundid,
+                    address,
+                    city,
+                    phone,
+                    companyid )
+                  VALUES (?,?,?,?,?,?);""", (
+                    archived_date,
+                    pound[0],
+                    pound[1],
+                    pound[2],
+                    pound[3],
+                    pound[4], ))
+    conn.commit()
         
-        companyid = session["companyid"]
+    # delete operator from operators
+    db.execute("""DELETE FROM pounds
+                  WHERE poundid = ?;""", (poundid, )) 
+    conn.commit()
 
-    #TODO: assign operator to truck (currently nullable in db)
-        #operatorid = session["operatorid"]
-        
-        db.execute("""INSERT INTO trucks (make, model, licenseplate, companyid)
-                      VALUES (?,?,?,?);""", (make, model, licenseplate, companyid, ))
-        conn.commit()
+    # reload pound management page
+    return poundManagement() 
 
-        # redirect user to pound management
-        return redirect("/truckManagement")
-
-    else:
-        # redirect to form
-        return render_template("addtruck.html")
 
 
 

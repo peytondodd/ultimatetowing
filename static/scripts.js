@@ -14,53 +14,6 @@ let info = new google.maps.InfoWindow();
 
 // Execute when the DOM is fully loaded
 $(document).ready(function() {
-
-    // Styles for map
-    // https://developers.google.com/maps/documentation/javascript/styling
-    let styles = [
-
-        // Hide Google's labels
-        {
-            featureType: "all",
-            elementType: "labels",
-            stylers: [
-                {visibility: "off"}
-            ]
-        },
-
-        // Hide roads
-        {
-            featureType: "road",
-            elementType: "geometry",
-            stylers: [
-                {visibility: "off"}
-            ]
-        }
-
-    ];
-
-    // Options for map
-    // https://developers.google.com/maps/documentation/javascript/reference#MapOptions
-    let options = {
-	center: {lat: 43.7037, lng: -79.3646}, // Toronto, Canada
-        disableDefaultUI: true,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
-        maxZoom: 14,
-        panControl: true,
-        zoom: 12,
-        zoomControl: true
-    };
-
-    // Get DOM node in which map will be instantiated
-    let canvas = $("#map").get(0);
-
-    // Instantiate map
-    map = new google.maps.Map(canvas, options);
-
-    // Configure UI once Google Map is idle (i.e., loaded)
-    google.maps.event.addListenerOnce(map, "idle", configure);
-
-
     // enable submit button when input string length is 9 
     $('#companyidcheck').on('change textInput input', function () {
 	companyid = this.value;
@@ -106,6 +59,10 @@ $(document).ready(function() {
 	   $(':input[type="submit"]').prop('disabled', false);
 	}
     });
+    // initialize map only on map page
+    if ( window.location.pathname == "/map" ) {
+	initMap();
+    }
 
     // onload requestownership.html - get companyid parameter
     if ( window.location.pathname == "/requestOwnership" ) {
@@ -188,6 +145,54 @@ function update()
 	*/
     });
 };
+
+function initMap()
+{
+    // Styles for map
+    // https://developers.google.com/maps/documentation/javascript/styling
+    let styles = [
+
+        // Hide Google's labels
+        {
+            featureType: "all",
+            elementType: "labels",
+            stylers: [
+                {visibility: "off"}
+            ]
+        },
+
+        // Hide roads
+        {
+            featureType: "road",
+            elementType: "geometry",
+            stylers: [
+                {visibility: "off"}
+            ]
+        }
+
+    ];
+
+    // Options for map
+    // https://developers.google.com/maps/documentation/javascript/reference#MapOptions
+    let options = {
+	center: {lat: 43.7037, lng: -79.3646}, // Toronto, Canada
+        disableDefaultUI: true,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        maxZoom: 14,
+        panControl: true,
+        zoom: 12,
+        zoomControl: true
+    };
+
+    // Get DOM node in which map will be instantiated
+    let canvas = $("#map").get(0);
+
+    // Instantiate map
+    map = new google.maps.Map(canvas, options);
+
+    // Configure UI once Google Map is idle (i.e., loaded)
+    google.maps.event.addListenerOnce(map, "idle", configure);
+}
 
 
 // Add marker for place to map
@@ -293,6 +298,78 @@ function showInfo(marker, content)
     // Open info window (if not already open)
     info.open(map, marker);
 }
+
+/*
+ * remove operator from company
+ */
+function removeOperator(rb)
+{
+    var row = $(rb).closest("tr");
+    let operatorid = row.children().first().text();
+    if (confirm("Are you sure?")) {
+	$.ajax({
+	    type: 'GET',
+	    url: '/removeOperator',
+	    data: { 
+		operatorid: operatorid
+	    },
+	    success: function(returnVal) {
+		row.remove();
+	    },
+	    error: function(request,error) {
+		console.log('Callback error.');
+	    }
+	});
+    } 
+} 
+
+/*
+ * remove truck from company
+ */
+function removeTruck(rb)
+{
+    var row = $(rb).closest("tr");
+    let truckid = row.children().first().text();
+    if (confirm("Are you sure?")) {
+	$.ajax({
+	    type: 'GET',
+	    url: '/removeTruck',
+	    data: { 
+		truckid: truckid
+	    },
+	    success: function(returnVal) {
+		row.remove();
+	    },
+	    error: function(request,error) {
+		console.log('Callback error.');
+	    }
+	});
+    } 
+} 
+
+/*
+ * remove pound from company
+ */
+function removePound(rb)
+{
+    var row = $(rb).closest("tr");
+    let poundid = row.children().first().text();
+    if (confirm("Are you sure?")) {
+	$.ajax({
+	    type: 'GET',
+	    url: '/removePound',
+	    data: { 
+		poundid: poundid
+	    },
+	    success: function(returnVal) {
+		row.remove();
+	    },
+	    error: function(request,error) {
+		console.log('Callback error.');
+	    }
+	});
+    } 
+} 
 
 /*
  *  check if company exists on submit 

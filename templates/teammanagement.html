@@ -12,6 +12,7 @@
             <th>Last Name</th>
             <th>Email</th>
             <th>Cell</th>
+            <th></th>
         </tr>
     {% for operator in team %}
         <tr>
@@ -20,6 +21,7 @@
             <td>{{ operator[2] }}</td>
             <td>{{ operator[3] }}</td>
             <td>{{ operator[5] }}</td>
+	    <td><div onclick="removeOperator(this)">Remove</div></td>
         </tr>
     {% endfor %}
     </table>

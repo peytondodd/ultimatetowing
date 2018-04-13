@@ -162,20 +162,31 @@ def registerCompany():
         hash = generate_password_hash(request.form.get("password"))
         
         # query database for company
-        db.execute("""SELECT companyname FROM companies
-                      WHERE companyname = ?;""", (companyname,))
+        db.execute("""SELECT companyname 
+                        FROM companies
+                       WHERE companyname = ?;""", (companyname,))
 
         rows = db.fetchall()
         if len(rows) > 0:
             return apology("Company name exists. Re-enter correct incorporation number.")
 
         # insert new owner into database
-        result = db.execute("""INSERT INTO owners (firstname, lastname, email, hash) 
-                               VALUES (?,?,?,?);""", (firstname, lastname, email, hash))
+        result = db.execute("""INSERT INTO owners (
+                                firstname, 
+                                lastname, 
+                                email, 
+                                hash, 
+                                date_registered ) 
+                               VALUES (?,?,?,?,CURRENT_TIMESTAMP);""", 
+                               (firstname, lastname, email, hash))
 
         # insert new company into database
-        db.execute("""INSERT INTO companies (companyid, companyname, phone) 
-                      VALUES (?,?,?);""", (companyid, companyname, phone))
+        db.execute("""INSERT INTO companies (
+                        companyid, 
+                        companyname, 
+                        phone ) 
+                      VALUES (?,?,?);""", 
+                      (companyid, companyname, phone))
 
         # user must provide unique email address 
         if not result:
@@ -233,8 +244,15 @@ def registerOperator():
         companyid = request.form.get("companyid")
 
         # insert new user into database
-        result = db.execute("""INSERT INTO operators (firstname, lastname, 
-                               email, hash, member, companyid) VALUES (?,?,?,?,?,?);""",
+        result = db.execute("""INSERT INTO operators  (
+                                 firstname, 
+                                 lastname, 
+                                 email, 
+                                 hash, 
+                                 member, 
+                                 date_registered, 
+                                 companyid ) 
+                               VALUES (?,?,?,?,?,CURRENT_TIMESTAMP,?);""",
                                (firstname, lastname, email, hash, 0, companyid))
 
         # user must provide unique email address 
@@ -275,13 +293,15 @@ def login():
         rows = None
         # Query database for email address
         if usertype == "Operator":
-            db.execute("""SELECT operatorid, email, hash FROM operators
-                          WHERE email = ?;""", (email,))
+            db.execute("""SELECT operatorid, email, hash 
+                            FROM operators
+                           WHERE email = ?;""", (email,))
             rows = db.fetchall()
 
         elif usertype == "Owner":
-            db.execute("""SELECT ownerid, email, hash FROM owners 
-                          WHERE email = ?;""", (email,))
+            db.execute("""SELECT ownerid, email, hash 
+                            FROM owners 
+                           WHERE email = ?;""", (email,))
             rows = db.fetchall()
 
         # Ensure username exists and password is correct
@@ -295,8 +315,9 @@ def login():
         session["user_type"] = usertype
 
         # store companyid
-        db.execute("""SELECT companyid FROM owners_companies 
-                      WHERE ownerid=?;""", (session["user_id"], ))
+        db.execute("""SELECT companyid 
+                        FROM owners_companies 
+                       WHERE ownerid=?;""", (session["user_id"], ))
         rows = db.fetchall() 
         session["companyid"] = rows[0][0]
 
@@ -348,11 +369,15 @@ def settings():
 
         # query for hash of password
         if session["user_type"] == "Owner":
-            db.execute("""SELECT hash FROM owners WHERE ownerid = ?;""", \
+            db.execute("""SELECT hash 
+                            FROM owners 
+                           WHERE ownerid = ?;""", \
                           (session["user_id"],))
             rows = db.fetchall()
         elif session["user_type"] == "Operator":
-            db.execute("""SELECT hash FROM operators WHERE operatorid = ?;""", \
+            db.execute("""SELECT hash 
+                            FROM operators 
+                           WHERE operatorid = ?;""", \
                           (session["user_id"],))
             rows = db.fetchall()
 
@@ -365,12 +390,18 @@ def settings():
         # check for the use
         # hash and update new password
         if session["user_type"] == "Owner":
-            db.execute("""UPDATE owners SET hash = ? WHERE ownerid = ?""", \
-                          (generate_password_hash(request.form.get("newpassword")), session["user_id"]))
+            db.execute("""UPDATE owners 
+                            SET hash = ? 
+                            WHERE ownerid = ?""", \
+                            (generate_password_hash(request.form.get("newpassword")), 
+                            session["user_id"]))
 
         elif session["user_type"] == "Operator":
-            db.execute("""UPDATE operators SET hash = ? WHERE operatorid = ?""", \
-                          (generate_password_hash(request.form.get("newpassword")), session["user_id"]))
+            db.execute("""UPDATE operators 
+                            SET hash = ? 
+                            WHERE operatorid = ?""", \
+                            (generate_password_hash(request.form.get("newpassword")), 
+                            session["user_id"]))
 
         # save changes to the database
         conn.commit()
@@ -411,7 +442,8 @@ def teamManagement():
     companyid = session["companyid"] 
 
     # query for operators in company
-    db.execute("""SELECT * FROM operators WHERE companyid=?""", 
+    db.execute("""SELECT * FROM operators 
+                    WHERE companyid=?""", 
             (companyid, ))
     team = db.fetchall()
 
@@ -431,6 +463,7 @@ def removeOperator():
 
     # query for operator details
     db.execute("""SELECT 
+                    date_registered,
                     operatorid,
                     firstname,
                     lastname,
@@ -442,11 +475,10 @@ def removeOperator():
                   WHERE operatorid=?;""", (operatorid, ))
     operator = db.fetchall()[0]
 
-    archived_date = datetime.datetime.now()
-
     # add operator into archived_operators table
     db.execute("""INSERT INTO archived_operators (
-                    archived_date,
+                    date_archived,
+                    date_registered,
                     operatorid,
                     firstname,
                     lastname,
@@ -454,20 +486,21 @@ def removeOperator():
                     hash,
                     cell,
                     companyid )
-                  VALUES (?,?,?,?,?,?,?,?);""", (
-                    archived_date,
+                  VALUES (CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?);""", (
                     operator[0],
                     operator[1],
                     operator[2],
                     operator[3],
                     operator[4],
                     operator[5],
-                    operator[6], ))
+                    operator[6],
+                    operator[7], ))
     conn.commit()
         
     # delete operator from operators
     db.execute("""DELETE FROM operators
-                  WHERE operatorid = ?;""", (operatorid, )) 
+                  WHERE operatorid = ?;""", 
+                  (operatorid, )) 
     conn.commit()
 
     # reload team management page
@@ -520,8 +553,16 @@ def addTruck():
     #TODO: assign operator to truck (currently nullable in db)
         #operatorid = session["operatorid"]
         
-        db.execute("""INSERT INTO trucks (make, model, licenseplate, companyid)
-                      VALUES (?,?,?,?);""", (make, model, licenseplate, companyid, ))
+        db.execute("""INSERT INTO trucks (
+                        make, 
+                        model, 
+                        licenseplate, 
+                        companyid )
+                      VALUES (?,?,?,?);""", (
+                        make, 
+                        model, 
+                        licenseplate, 
+                        companyid, ))
         conn.commit()
 
         # redirect user to pound management
@@ -553,19 +594,16 @@ def removeTruck():
                   FROM trucks
                   WHERE truckid=?;""", (truckid, ))
     truck = db.fetchall()[0]
-    archived_date = datetime.datetime.now()
 
     # add operator into archived_trucks table
     db.execute("""INSERT INTO archived_trucks (
-                    archived_date,
                     truckid,
                     make,
                     model,
                     licenseplate,
                     companyid,
                     operatorid )
-                  VALUES (?,?,?,?,?,?,?);""", (
-                    archived_date,
+                  VALUES (?,?,?,?,?,?);""", (
                     truck[0],
                     truck[1],
                     truck[2],
@@ -628,8 +666,16 @@ def addPound():
 
     #TODO: Geocode address and store long, lat? or consider calling function to retrieve geocode?
 
-        db.execute("""INSERT INTO pounds (address, city, phone, companyid)
-                      VALUES (?,?,?,?);""", (address, city, phone, companyid, ))
+        db.execute("""INSERT INTO pounds (
+                        address, 
+                        city, 
+                        phone, 
+                        companyid )
+                      VALUES (?,?,?,?);""", (
+                        address, 
+                        city, 
+                        phone, 
+                        companyid, ))
         conn.commit()
 
         # redirect user to pound management
@@ -665,14 +711,12 @@ def removePound():
 
     # add pound into archived_pounds table
     db.execute("""INSERT INTO archived_pounds (
-                    archived_date,
                     poundid,
                     address,
                     city,
                     phone,
                     companyid )
-                  VALUES (?,?,?,?,?,?);""", (
-                    archived_date,
+                  VALUES (?,?,?,?,?);""", (
                     pound[0],
                     pound[1],
                     pound[2],
@@ -682,7 +726,8 @@ def removePound():
         
     # delete operator from operators
     db.execute("""DELETE FROM pounds
-                  WHERE poundid = ?;""", (poundid, )) 
+                  WHERE poundid = ?;""", 
+                  (poundid, )) 
     conn.commit()
 
     # reload pound management page
@@ -738,8 +783,10 @@ def geo():
     """store coordinates in active_trucks"""
         
     if session["user_type"] == "Operator":
-        db.execute("""INSERT into active_trucks (lat, lon) WHERE userid = ?;""", \
-                      (session["user_id"],))
+        db.execute("""INSERT into active_trucks (
+                        lat, lon ) 
+                        WHERE userid = ?;""", \
+                        (session["user_id"],))
     
 
 @app.route("/update")
@@ -749,8 +796,10 @@ def update():
     trucks = []
 
     # get position of active trucks
-    db.execute("""SELECT operatorid, lat, lon FROM active_trucks WHERE operatorid = ?;""", \
-                  (session["user_id"],))
+    db.execute("""SELECT operatorid, lat, lon 
+                    FROM active_trucks 
+                    WHERE operatorid = ?;""", \
+                    (session["user_id"],))
 
     rows = db.fetchall()
 
@@ -786,7 +835,8 @@ def linkOwnerCompany(ownerid, companyid):
     
     # add link in joint table for owner & company
     db.execute("""INSERT INTO owners_companies 
-                      VALUES (?, ?);""", (ownerid, companyid))
+                      VALUES (?, ?);""", 
+                      (ownerid, companyid))
     
     conn.commit()
     

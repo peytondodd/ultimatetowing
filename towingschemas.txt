@@ -6,6 +6,7 @@ CREATE TABLE operators (
     hash text not null,
     cell text,
     member integer not null,
+    date_registered text,
     companyid text not null,
         FOREIGN KEY (companyid) REFERENCES companies(companyid)
 );
@@ -16,7 +17,8 @@ CREATE TABLE owners (
     lastname text not null,
     email text not null unique,
     hash text not null,
-    cell text
+    cell text,
+    date_registered text
 );
 
 CREATE TABLE companies (
@@ -60,7 +62,8 @@ CREATE TABLE pounds (
 );
 
 CREATE TABLE archived_operators (
-    archived_date text,
+    date_archived text,
+    date_registered text,
     operatorid integer not null,
     firstname text not null,
     lastname text not null,
@@ -78,7 +81,6 @@ CREATE TABLE archived_operators (
 );
 
 CREATE TABLE archived_trucks (
-    archived_date text,
     truckid integer not null,
     make text not null,
     model text not null,
@@ -94,7 +96,6 @@ CREATE TABLE archived_trucks (
 );
 
 CREATE TABLE archived_pounds (
-    archived_date text,
     poundid integer not null,
     address text not null,
     city text not null,
@@ -102,9 +103,9 @@ CREATE TABLE archived_pounds (
     companyid text not null,
         FOREIGN KEY (companyid) REFERENCES trucks(companyid)
 );
----------------------------------------------------------------------------------------------------------------------------------------
-							sqlite3 commands 
----------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------
+---------- sqlite3 commands ---------- 
+--------------------------------------
 
 // select all operators working under company id 555555555
 SELECT firstname, lastname, companies.companyname FROM operators INNER JOIN companies ON companies.companyid = operators.companyid WHERE companies.companyid = 555555555;

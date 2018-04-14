@@ -314,12 +314,13 @@ def login():
         session["user_id"] = rows[0][0]
         session["user_type"] = usertype
 
-        # store companyid
-        db.execute("""SELECT companyid 
-                        FROM owners_companies 
-                       WHERE ownerid=?;""", (session["user_id"], ))
-        rows = db.fetchall() 
-        session["companyid"] = rows[0][0]
+        if usertype == "Owner":
+            # store companyid
+            db.execute("""SELECT companyid 
+                            FROM owners_companies 
+                           WHERE ownerid=?;""", (session["user_id"], ))
+            rows = db.fetchall() 
+            session["companyid"] = rows[0][0]
 
         # Redirect user to home page
         return redirect("/")

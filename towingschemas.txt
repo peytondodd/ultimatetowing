@@ -114,10 +114,22 @@ SELECT firstname, lastname, companies.companyname FROM operators INNER JOIN comp
 
 
 
-
-
-
-
-
-
-
+INSERT INTO operators (
+    operatorid,
+    firstname,
+    lastname,
+    email,
+    hash,
+    member,
+    date_registered,
+    companyid
+    ) VALUES (
+    1,
+    'homer',
+    'simpson',
+    'hs@gmail.com',
+    'sha2050353846',
+    '0',
+    'CURRENT_TIMESTAMP',
+    '000000000'
+    );

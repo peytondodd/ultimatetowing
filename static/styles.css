@@ -1,3 +1,11 @@
+html * {
+    font-family: "Courier New";
+}
+
+.input {
+    font-family: "Courier New" !important;
+}
+
 nav {
     z-index: 10;
 }
@@ -38,7 +46,7 @@ nav .navbar-brand .green
 .dropdown:hover .dropdown-menu {
     display: block;
 }
-main .form-control
+.form-control
 {
     /* center form controls */
     display: inline-block;
@@ -156,4 +164,24 @@ main img
 
 #map > div {
     overflow: hidden;
+}
+
+.nav-tabs {
+    display: none;
+}
+
+#tabs {
+    border: none;
+}
+
+.formh3 {
+    margin-bottom: 30px;
+}
+
+.goPrev {
+    display: none;
+}
+.submit {
+    margin-top: 20px;
+    display: none;
 }

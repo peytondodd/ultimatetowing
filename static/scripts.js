@@ -487,3 +487,48 @@ function handleLocationError(browserHasGeolocation, info, pos) {
     info.open(map);
 }
 
+index = 1;
+function goToNextTab() {
+    index++;
+    $(".goPrev").show();
+    if (index == 3) {
+	$(".goNext").hide();
+	$(".submit").show();
+    }
+    var nextTab = $('.nav-tabs > .active').next('li');
+    if (nextTab.hasClass("disabled")) {
+	nextTab.removeClass("disabled");
+    }
+    $('.nav-tabs > li').removeClass("active");
+    nextTab.addClass("active");
+    nextTab.find('a').attr("data-toggle","tab").trigger('click');
+    
+    $('html, body').animate({
+        scrollTop: 0
+    }, 100);
+    
+    if( nextTab.find('a').attr("href") == "#submit" ) {
+        $(".go").fadeOut();
+        $(window).unbind('beforeunload');
+    }
+}
+
+function goToPrevTab() {
+    index--;
+    $(".goNext").show();
+    $(".submit").hide();
+    if (index == 1) {
+	$(".goPrev").hide();
+    }
+    var prevTab = $('.nav-tabs > .active').prev('li');
+    if (prevTab.hasClass("disabled")) {
+	prevTab.removeClass("disabled");
+    }
+    $('.nav-tabs > li').removeClass("active");
+    prevTab.addClass("active");
+    prevTab.find('a').attr("data-toggle","tab").trigger('click');
+    
+    $('html, body').animate({
+        scrollTop: 0
+    }, 100);
+}

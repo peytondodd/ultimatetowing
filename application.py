@@ -741,11 +741,78 @@ def removePound():
 ######################## Operator Functions ########################
 ####################################################################
 
-@app.route("/incidentReport")
+@app.route("/incidentReport", methods=["GET", "POST"])
 @login_required
 def incidentReport():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
+    """Incident Report Form"""
+    # create new incident report
+
+    if request.method =="POST":
+
+        # check/store customer information
+        if not request.form.get("name"):
+            return apology("Enter customer name")
+        elif not request.form.get("address"):
+            return apology("Enter customer address")
+        elif not request.form.get("phone"):
+            return apology("Enter customer phone number")
+        elif not request.form.get("insurancecompany"):
+            return apology("Enter customer insurance company")
+        elif not request.form.get("insurancepolicy"):
+            return apology("Enter customer insurance policy number")
+
+        name = request.form.get("name")
+        address = request.form.get("address")
+        phone = request.form.get("phone")
+        insurancecompany = request.form.get("insurancecompany")
+        insurancepolicy = request.form.get("insurancepolicy")
+
+        # check/store incident details
+        if not request.form.get("pickup"):
+            return apology("Enter incident location")
+        elif not request.form.get("dropoff"):
+            return apology("Enter drop-off location")
+        elif not request.form.get("crcused"):
+            return apology("DEAL WITH NO CRC")
+
+        pickup = request.form.get("pickup")
+        dropoff = request.form.get("dropoff")
+        crcused = request.form.get("crcused")
+        flattire = request.form.get("flattire")
+        flatbed = request.form.get("flatbed")
+        dollies = request.form.get("dollies")
+        boost = request.form.get("boost")
+        fuel = request.form.get("fuel")
+        winch = request.form.get("winch")
+        lockout = request.form.get("lockout")
+        collision = request.form.get("collision")
+        towed = request.form.get("towed")
+        
+        # check/store customer vehicle details
+        if not request.form.get("year"):
+            return apology("Enter vehicle year")
+        elif not request.form.get("make"):
+            return apology("Enter vehicle make")
+        elif not request.form.get("model"):
+            return apology("Enter vehicle model")
+        elif not request.form.get("mileage"):
+            return apology("Enter vehicle mileage")
+        elif not request.form.get("color"):
+            return apology("Enter vehicle color")
+        elif not request.form.get("licenseplate"):
+            return apology("Enter vehicle license plate")
+        elif not request.form.get("vin"):
+            return apology("Enter vehicle VIN")
+        
+        year = request.form.get("year")
+        make = request.form.get("make")
+        model = request.form.get("model")
+        mileage = request.form.get("mileage")
+        color = request.form.get("color")
+        vin = request.form.get("vin")
+        keys = request.form.get("keys")
+
+        return render_template("incidenthistory.html")
 
     return render_template("incidentreport.html")
 

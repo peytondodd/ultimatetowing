@@ -31,8 +31,9 @@
 	    + accident?
 	    + tow?
 
-	5. Accident Date
-	6. Tow-truck operator name:
+# GET FROM APPLICATION.PY
+**	5. Accident Date
+**	6. Tow-truck operator name:
 
     - Vehicle information:
 	1. Year

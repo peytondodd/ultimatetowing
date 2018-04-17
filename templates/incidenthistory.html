@@ -1,9 +1,26 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Incident History
+    Incident Report History
 {% endblock %}
 
 {% block main %}
-
+    <table class="table table-striped" style="width:100%">
+        <tr>
+            <th>Date</th>
+	    <th>Pick-up</th>
+            <th>Drop-off</th>
+            <th>Keys Obtained</th>
+	    <th><a href="/incidentReport">+</a></th>
+        </tr>
+    {% for incident in history %}
+        <tr>
+            <td>{{ incident[1] }}</td>
+            <td>{{ incident[2] }}</td>
+            <td>{{ incident[3] }}</td>
+            <td>{{ incident[14] }}</td>
+	    <td></td>
+        </tr>
+    {% endfor %}
+    </table>
 {% endblock %}

@@ -520,8 +520,7 @@ def removeOperator():
 @app.route("/truckManagement")
 @login_required
 def truckManagement():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
+    """Owner truck management page"""
 
     companyid = session["companyid"] 
 
@@ -841,8 +840,8 @@ def incidentReport():
             return apology("Enter incident location")
         elif not request.form.get("dropoff"):
             return apology("Enter drop-off location")
-        elif not request.form.get("crcused"):
-            return apology("TODO: DEAL WITH NO CRC")
+        #elif not request.form.get("crcused"):
+        #    return apology("TODO: DEAL WITH NO CRC")
 
         # input from incident details
         pickup = request.form.get("pickup")
@@ -859,11 +858,6 @@ def incidentReport():
         towed = request.form.get("towed")
         keys = request.form.get("keys")
         companyid = session["companyid"] 
-
-        print(flattire)
-        print(flatbed)
-        print(dollies)
-    
 
         db.execute("""SELECT vehicleid 
                         FROM cust_vehicles
@@ -909,7 +903,7 @@ def incidentReport():
 
         conn.commit()
 
-        return render_template("incidenthistory.html")
+        return redirect("/incidentHistory")
 
     return render_template("incidentreport.html")
 
@@ -918,8 +912,16 @@ def incidentReport():
 def incidentHistory():
     """Owner team management page"""
     # display relevant dashboard (owner/operator)
+    operatorid = session["user_id"] 
 
-    return render_template("incidenthistory.html")
+    # query for company trucks
+    db.execute("""SELECT * FROM incidents WHERE operatorid=?""", 
+                  (operatorid, ))
+    history = db.fetchall()
+
+    # pass list of incidents to jinja in html
+    return render_template("incidenthistory.html", history=history)
+
 
 @app.route("/impoundedVehicles")
 @login_required

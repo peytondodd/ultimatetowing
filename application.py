@@ -322,6 +322,14 @@ def login():
             rows = db.fetchall() 
             session["companyid"] = rows[0][0]
 
+        elif usertype == "Operator":
+            # store companyid
+            db.execute("""SELECT companyid 
+                            FROM operators 
+                           WHERE operatorid=?;""", (session["user_id"], ))
+            rows = db.fetchall() 
+            session["companyid"] = rows[0][0]
+
         # Redirect user to home page
         return redirect("/")
 
@@ -761,33 +769,27 @@ def incidentReport():
         elif not request.form.get("insurancepolicy"):
             return apology("Enter customer insurance policy number")
 
+        # input from customer information
         name = request.form.get("name")
         address = request.form.get("address")
         phone = request.form.get("phone")
         insurancecompany = request.form.get("insurancecompany")
         insurancepolicy = request.form.get("insurancepolicy")
 
-        # check/store incident details
-        if not request.form.get("pickup"):
-            return apology("Enter incident location")
-        elif not request.form.get("dropoff"):
-            return apology("Enter drop-off location")
-        elif not request.form.get("crcused"):
-            return apology("DEAL WITH NO CRC")
+        # add to table: customers
+        db.execute("""INSERT INTO customers (
+                        name,
+                        address,
+                        phone,
+                        insurancecompany,
+                        insurancepolicy )
+                      VALUES (?,?,?,?,?);""", (
+                        name,
+                        address,
+                        phone,
+                        insurancecompany,
+                        insurancepolicy, ))
 
-        pickup = request.form.get("pickup")
-        dropoff = request.form.get("dropoff")
-        crcused = request.form.get("crcused")
-        flattire = request.form.get("flattire")
-        flatbed = request.form.get("flatbed")
-        dollies = request.form.get("dollies")
-        boost = request.form.get("boost")
-        fuel = request.form.get("fuel")
-        winch = request.form.get("winch")
-        lockout = request.form.get("lockout")
-        collision = request.form.get("collision")
-        towed = request.form.get("towed")
-        
         # check/store customer vehicle details
         if not request.form.get("year"):
             return apology("Enter vehicle year")
@@ -802,15 +804,110 @@ def incidentReport():
         elif not request.form.get("licenseplate"):
             return apology("Enter vehicle license plate")
         elif not request.form.get("vin"):
-            return apology("Enter vehicle VIN")
+            return apology("Enter vehicle VIN") 
         
+        # input from customer vehicle details
         year = request.form.get("year")
         make = request.form.get("make")
         model = request.form.get("model")
         mileage = request.form.get("mileage")
         color = request.form.get("color")
+        licenseplate = request.form.get("licenseplate")
         vin = request.form.get("vin")
+        operatorid = session["user_id"]
+
+        # add to table: cust_vehicles
+        db.execute("""INSERT INTO cust_vehicles (
+                        year,
+                        make,
+                        model,
+                        mileage,
+                        color,
+                        licenseplate,
+                        vin,
+                        operatorid )
+                      VALUES (?,?,?,?,?,?,?,?);""", (
+                        year,
+                        make,
+                        model,
+                        mileage,
+                        color,
+                        licenseplate,
+                        vin,
+                        operatorid, ))
+
+        # check/store incident details
+        if not request.form.get("pickup"):
+            return apology("Enter incident location")
+        elif not request.form.get("dropoff"):
+            return apology("Enter drop-off location")
+        elif not request.form.get("crcused"):
+            return apology("TODO: DEAL WITH NO CRC")
+
+        # input from incident details
+        pickup = request.form.get("pickup")
+        dropoff = request.form.get("dropoff")
+        crcused = request.form.get("crcused")
+        flattire = request.form.get("flattire")
+        flatbed = request.form.get("flatbed")
+        dollies = request.form.get("dollies")
+        boost = request.form.get("boost")
+        fuel = request.form.get("fuel")
+        winch = request.form.get("winch")
+        lockout = request.form.get("lockout")
+        collision = request.form.get("collision")
+        towed = request.form.get("towed")
         keys = request.form.get("keys")
+        companyid = session["companyid"] 
+
+        print(flattire)
+        print(flatbed)
+        print(dollies)
+    
+
+        db.execute("""SELECT vehicleid 
+                        FROM cust_vehicles
+                       WHERE vin=?;""", (vin, ))
+        vehicleid = db.fetchall()[0][0]
+
+        # add to table: incidents
+        db.execute("""INSERT INTO incidents (
+                        incidentdate,
+                        pickup,
+                        dropoff,
+                        crcused,
+                        flattire,
+                        flatbed,
+                        dollies,
+                        boost,
+                        fuel,
+                        winch,
+                        lockout,
+                        collision,
+                        towed,
+                        keys,
+                        companyid,
+                        operatorid,
+                        vehicleid )
+                      VALUES (CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);""", (
+                        pickup,
+                        dropoff,
+                        crcused,
+                        flattire,
+                        flatbed,
+                        dollies,
+                        boost,
+                        fuel,
+                        winch,
+                        lockout,
+                        collision,
+                        towed,
+                        keys,
+                        companyid,
+                        operatorid,
+                        vehicleid, ))
+
+        conn.commit()
 
         return render_template("incidenthistory.html")
 

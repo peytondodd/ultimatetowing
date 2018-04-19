@@ -185,3 +185,19 @@ main img
     margin-top: 20px;
     display: none;
 }
+
+.locked {
+  height: 12px;
+  width: 12px;
+  background-color: #cc0000;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.released {
+  height: 12px;
+  width: 12px;
+  background-color: #00cc00;
+  border-radius: 50%;
+  display: inline-block;
+}

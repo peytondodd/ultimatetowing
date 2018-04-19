@@ -5,5 +5,28 @@
 {% endblock %}
 
 {% block main %}
-
+    <table class="table table-striped" style="width:100%">
+        <tr>
+            <th>Status</th>
+            <th>Year</th>
+	    <th>Make</th>
+	    <th>Model</th>
+            <th>Pound ID</th>
+            <th>Days</th>
+        </tr>
+    {% for vehicle in impounded_vehicles %}
+        <tr>
+	{% if vehicle[0] > 0 %}
+	    <td><span class="released"></span></td>
+	{% elif vehicle[0] != 1 %}
+	    <td><span class="locked"></span></td>
+	{% endif %}
+	    <td>{{ vehicle[3] }}</td>
+	    <td>{{ vehicle[4] }}</td>
+	    <td>{{ vehicle[5] }}</td>
+	    <td>{{ vehicle[1] }}</td>
+	    <td>{{ vehicle[2] }}</td>
+        </tr>
+    {% endfor %}
+    </table>
 {% endblock %}

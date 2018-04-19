@@ -842,6 +842,7 @@ def incidentReport():
             return apology("Enter drop-off location")
         #elif not request.form.get("crcused"):
         #    return apology("TODO: DEAL WITH NO CRC")
+        
 
         # input from incident details
         pickup = request.form.get("pickup")
@@ -857,6 +858,7 @@ def incidentReport():
         collision = request.form.get("collision")
         towed = request.form.get("towed")
         keys = request.form.get("keys")
+        poundid = request.form.get("poundid")
         companyid = session["companyid"] 
 
         db.execute("""SELECT vehicleid 
@@ -882,8 +884,9 @@ def incidentReport():
                         keys,
                         companyid,
                         operatorid,
-                        vehicleid )
-                      VALUES (CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);""", (
+                        vehicleid,
+                        poundid )
+                      VALUES (CURRENT_TIMESTAMP,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?);""", (
                         pickup,
                         dropoff,
                         crcused,
@@ -899,8 +902,19 @@ def incidentReport():
                         keys,
                         companyid,
                         operatorid,
-                        vehicleid, ))
+                        vehicleid,
+                        poundid, ))
 
+        # add to table: impounded_vehicles
+        db.execute("""INSERT INTO impounded_vehicles (
+                        impounded_date,
+                        vehicleid,
+                        poundid,
+                        operatorid )
+                      VALUES (CURRENT_TIMESTAMP,?,?,?);""", (
+                        vehicleid,
+                        poundid,
+                        operatorid, ))
         conn.commit()
 
         return redirect("/incidentHistory")
@@ -910,8 +924,7 @@ def incidentReport():
 @app.route("/incidentHistory")
 @login_required
 def incidentHistory():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
+    """Operator incident history"""
     operatorid = session["user_id"] 
 
     # query for company trucks
@@ -926,10 +939,29 @@ def incidentHistory():
 @app.route("/impoundedVehicles")
 @login_required
 def impoundedVehicles():
-    """Owner team management page"""
-    # display relevant dashboard (owner/operator)
+    """Operator's list of impounded vehicles"""
+    operatorid = session["user_id"] 
+    
+    db.execute("""SELECT 
+                    status, 
+                    poundid, 
+                    round(julianday('now') - julianday(impounded_date), 0),
+                    cust_vehicles.year, 
+                    cust_vehicles.make, 
+                    cust_vehicles.model 
+                  FROM impounded_vehicles 
+                  INNER JOIN cust_vehicles 
+                  ON cust_vehicles.vehicleid = impounded_vehicles.vehicleid 
+                  WHERE cust_vehicles.operatorid = ?;""", 
+                  (operatorid, ))
 
-    return render_template("impoundedvehicles.html")
+    # query for impounded vehicles by operatorid
+    impounded_vehicles = db.fetchall()
+    print(impounded_vehicles)
+
+    # pass list of incidents to jinja in html
+    return render_template("impoundedvehicles.html", impounded_vehicles=impounded_vehicles)
+
 
 
 ##############################################################

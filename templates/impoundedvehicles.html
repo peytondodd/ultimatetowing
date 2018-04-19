@@ -17,9 +17,9 @@
     {% for vehicle in impounded_vehicles %}
         <tr>
 	{% if vehicle[0] > 0 %}
-	    <td><span class="released"></span></td>
+	    <td><img src="https://images-na.ssl-images-amazon.com/images/I/719zM3RmAxL.png" width="14" height="14"></td>
 	{% elif vehicle[0] != 1 %}
-	    <td><span class="locked"></span></td>
+	    <td><img src="https://upload.wikimedia.org/wikipedia/commons/8/8e/Chloride-ion-3D-vdW.png" width="14" height="14"></span></td>
 	{% endif %}
 	    <td>{{ vehicle[3] }}</td>
 	    <td>{{ vehicle[4] }}</td>

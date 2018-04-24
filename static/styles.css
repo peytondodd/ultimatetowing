@@ -188,3 +188,17 @@ main img
 .rotateimg30 {
     transform: rotate(30deg);
 }
+
+div#addIncident {
+    width: 75px;
+    height: 75px;
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+    z-index: 5;
+    font-size: 28pt;
+    background: url("https://cdn4.iconfinder.com/data/icons/Mobile-Icons/128/04_maps.png");
+    background-size: cover;
+    font-weight: bold;
+    cursor: pointer;
+}

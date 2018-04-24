@@ -211,13 +211,39 @@ function handleLocationError(browserHasGeolocation, info, coords) {
 
 // update operator location on coordinate change
 function watchTruckMarker() {
+    let options = {
+	enableHighAccuracy: true,
+	timeout: 5000,
+	maximumAge: 0
+    };
+
     navigator.geolocation.watchPosition(function(position) {
 	coords = {
 	    lat: position.coords.latitude,
 	    lng: position.coords.longitude
 	};
+
+	// move truck marker to new coordinates
 	truckMarker.setPosition(coords);
-    });
+
+	// send coordinates to server 
+	$.ajax({
+	    type: 'get',
+	    url: '/updatecoordinates',
+	    data: { 
+		coords: coords
+	    },
+	    success: function() {
+		console.log("callback successful.");
+	    },
+	    error: function() {
+		console.log('callback error.');
+	    }
+	});
+
+    }, function() {
+	handleLocationError(true, info, map.getCenter());
+    }, options);
 }
 
 function addIncidentMarker(coords) {

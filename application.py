@@ -976,17 +976,19 @@ def map():
 
     return render_template("map.html")
 
-@app.route("/geo")
-@login_required
-def geo():
-    """store coordinates in active_trucks"""
-        
-    if session["user_type"] == "Operator":
-        db.execute("""INSERT into active_trucks (
-                        lat, lon ) 
-                        WHERE userid = ?;""", \
-                        (session["user_id"],))
-    
+@app.route("/updateCoordinates")
+def updateCoordinates():
+    """Track coordinates of active operators"""
+
+    print(coords);
+
+#    if session["user_type"] == "Operator":
+#        db.execute("""INSERT into active_trucks (
+#                        lat, lon ) 
+#                        WHERE userid = ?;""", \
+#                        (session["user_id"],))
+    return true
+
 
 @app.route("/update")
 def update():

@@ -140,8 +140,40 @@ function configure() {
     // Try HTML5 geolocation.
     if (navigator.geolocation) {
 
-	// find current coordinates and draw marker
-	drawTruckMarker();
+	let options = {
+	    enableHighAccuracy: true,
+	    maximumAge: 0
+	};
+
+	// watch current coordinates
+	navigator.geolocation.watchPosition(function(position) {
+	    coords = {
+		lat: position.coords.latitude,
+		lng: position.coords.longitude
+	    };
+	    // send coordinates to server 
+	    $.ajax({
+		type: 'GET',
+		url: '/updateCoordinates',
+		data: { 
+		    lat: position.coords.latitude,
+		    lng: position.coords.longitude
+		},
+		success: function() {
+		    console.log("DEBUG: updateCoordinates (callback:success)");
+		    console.log(coords);
+		    // Center map to current location
+		    map.setCenter(coords);
+		},
+		error: function() {
+		    console.log("DEBUG: updateCoordinates (callback:error)");
+		}
+	    });
+
+	}, function() {
+	    handleLocationError(true, info, map.getCenter());
+	    console.log("DEBUG: watchPosition (callback:error)");
+	}, options);
 
 	/* Update UI after map has been dragged
 	// google.maps.event.addListener(map, "dragend", function() {
@@ -160,46 +192,30 @@ function configure() {
     }
 }
 
-// get truck's current positon and draw marker
 function drawTruckMarker() {
-    let options = {
-	enableHighAccuracy: false,
-	timeout: 5000,
-	maximumAge: 0
+    coords = {
+	lat: position.coords.latitude,
+	lng: position.coords.longitude
     };
 
-    navigator.geolocation.getCurrentPosition(function(position) {
-	coords = {
-	    lat: position.coords.latitude,
-	    lng: position.coords.longitude
-	};
+    var image = "/static/redtruck-40.png";
+    truckMarker = new google.maps.Marker({
+	position: coords,
+	map: map,
+	animation: google.maps.Animation.DROP,
+	icon: image,
+	title: 'todo: <operatorinfo>'
+    });
 
-	var image = "/static/redtruck-40.png";
-	truckMarker = new google.maps.Marker({
-	    position: coords,
-	    map: map,
-	    animation: google.maps.Animation.DROP,
-	    icon: image,
-	    title: 'todo: <operatorinfo>'
-	});
+    truckMarker.addListener('click', function() {
+	info.open(map, truckMarker);
+    });
 
-	truckMarker.addListener('click', function() {
-	    info.open(map, truckMarker);
-	});
+    info.setPosition(coords);
+    info.setContent('It\'s me! Mario');
 
-	info.setPosition(coords);
-	info.setContent('It\'s me! Mario');
-
-	// Center map to current location
-	map.setCenter(coords);
-
-	// track truck's position
-	watchTruckMarker();
-
-    }, function() {
-	handleLocationError(true, info, map.getCenter());
-    }, options);
 }
+
 
 function handleLocationError(browserHasGeolocation, info, coords) {
     info.setPosition(coords);
@@ -209,47 +225,12 @@ function handleLocationError(browserHasGeolocation, info, coords) {
     info.open(map);
 }
 
-// update operator location on coordinate change
-function watchTruckMarker() {
-    let options = {
-	enableHighAccuracy: true,
-	timeout: 5000,
-	maximumAge: 0
-    };
-
-    navigator.geolocation.watchPosition(function(position) {
-	coords = {
-	    lat: position.coords.latitude,
-	    lng: position.coords.longitude
-	};
-
-	// move truck marker to new coordinates
-	truckMarker.setPosition(coords);
-
-	// send coordinates to server 
-	$.ajax({
-	    type: 'get',
-	    url: '/updatecoordinates',
-	    data: { 
-		coords: coords
-	    },
-	    success: function() {
-		console.log("callback successful.");
-	    },
-	    error: function() {
-		console.log('callback error.');
-	    }
-	});
-
-    }, function() {
-	handleLocationError(true, info, map.getCenter());
-    }, options);
-}
 
 function addIncidentMarker(coords) {
     navigator.geolocation.getCurrentPosition(function(position) {
-
+	console.log("DEBUG: addIncidentMarker(coords)");
 	console.log(coords.lat);
+	console.log(coords.lng);
 	var incidentMarker = new google.maps.Marker({
 	    position: coords,
 	    map: map,

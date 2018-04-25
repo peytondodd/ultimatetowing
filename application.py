@@ -976,18 +976,29 @@ def map():
 
     return render_template("map.html")
 
+
 @app.route("/updateCoordinates")
 def updateCoordinates():
-    """Track coordinates of active operators"""
+    """Update truck coordinates in database"""
 
-    print(coords);
+    lat = request.args.get("lat")
+    lng = request.args.get("lng")
 
-#    if session["user_type"] == "Operator":
-#        db.execute("""INSERT into active_trucks (
-#                        lat, lon ) 
-#                        WHERE userid = ?;""", \
-#                        (session["user_id"],))
-    return true
+    print("DEBUG: updateCoordinates")
+    print(lat)
+    print(lng)
+    
+    if session["user_type"] == "Operator":
+        # for testing purposes, we'll record all position changes
+        db.execute("""INSERT into active_trucks (
+                        lat, lng, operatorid ) 
+                        VALUES (?,?,?);""", \
+                        (lat,lng,session["user_id"],))
+        conn.commit()
+        
+
+    return "True" 
+
 
 
 @app.route("/update")
@@ -1015,7 +1026,6 @@ def update():
         trucks.append(truck.copy())
 
     return trucks
-
 
 
 

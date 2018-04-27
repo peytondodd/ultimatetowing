@@ -990,7 +990,8 @@ def updateCoordinates():
     
     if session["user_type"] == "Operator":
         # for testing purposes, we'll record all position changes
-        db.execute("""INSERT into active_trucks (
+        db.execute("""INSERT OR REPLACE
+                      INTO active_trucks (
                         lat, lng, operatorid ) 
                         VALUES (?,?,?);""", \
                         (lat,lng,session["user_id"],))

@@ -984,10 +984,10 @@ def updateCoordinates():
     lat = request.args.get("lat")
     lng = request.args.get("lng")
 
-    print("DEBUG: updateCoordinates")
-    print(lat)
-    print(lng)
-    
+    print("New coordinates")
+    print("Latitude: " + lat)
+    print("Longitude: " + lng)
+
     if session["user_type"] == "Operator":
         # for testing purposes, we'll record all position changes
         db.execute("""INSERT OR REPLACE
@@ -996,7 +996,6 @@ def updateCoordinates():
                         VALUES (?,?,?);""", \
                         (lat,lng,session["user_id"],))
         conn.commit()
-        
 
     return "True" 
 

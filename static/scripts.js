@@ -160,8 +160,9 @@ function configure() {
 		    lng: position.coords.longitude
 		},
 		success: function() {
-		    console.log("DEBUG: updateCoordinates (callback:success)");
-		    console.log(coords);
+		    console.log("Coordinates updated");
+		    console.log("Latitude: " + coords.lat);
+		    console.log("Longitude: " + coords.lng);
 		    // Center map to current location
 		    map.setCenter(coords);
 		},

@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Index
+{% endblock %}
+
+{% block main %}
+    <div id="teammanagement">
+	{% for operator in team %}
+	<div class="card">
+	    <img src="https://www.shareicon.net/data/128x128/2016/11/09/851666_user_512x512.png" alt="" />
+	    <h3>{{ operator[1] + ' ' + operator[2] }}</h3>
+	</div>
+	{% endfor %}
+    </div>
+{% endblock %}

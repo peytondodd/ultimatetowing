@@ -1,5 +1,2 @@
 __pycache__/
-towing.db-journal
 .DS_Store
-templates/teammanagement_draft.html
-static/operator.png
